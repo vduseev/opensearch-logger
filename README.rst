@@ -3,7 +3,6 @@
 CMRESHandler.py
 ===============
 
-|  |license|
 |  |ci_status| |codecov|
 
 
