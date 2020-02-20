@@ -3,8 +3,8 @@
 CMRESHandler.py
 ===============
 
-|  |license| |versions| |status| |downloads|
-|  |ci_status| |codecov| |gitter|
+|  |license|
+|  |ci_status| |codecov|
 
 
 Python Elasticsearch Log handler
@@ -178,25 +178,9 @@ Contributing back
 -----------------
 Feel free to use this as is or even better, feel free to fork and send your pull requests over.
 
-
-.. |downloads| image:: https://img.shields.io/pypi/dd/CMRESHandler.svg
-    :target: https://pypi.python.org/pypi/CMRESHandler
-    :alt: Daily PyPI downloads
-.. |versions| image:: https://img.shields.io/pypi/pyversions/CMRESHandler.svg
-    :target: https://pypi.python.org/pypi/CMRESHandler
-    :alt: Python versions supported
-.. |status| image:: https://img.shields.io/pypi/status/CMRESHandler.svg
-    :target: https://pypi.python.org/pypi/CMRESHandler
-    :alt: Package stability
-.. |license| image:: https://img.shields.io/pypi/l/CMRESHandler.svg
-    :target: https://pypi.python.org/pypi/CMRESHandler
-    :alt: License
-.. |ci_status| image:: https://travis-ci.org/cmanaha/python-elasticsearch-logger.svg?branch=master
-    :target: https://travis-ci.org/cmanaha/python-elasticsearch-logger
+.. |ci_status| image:: https://travis-ci.com/Rockin2/python-elasticsearch-ecs-logger.svg?branch=master
+    :target: https://travis-ci.org/Rockin2/python-elasticsearch-ecs-logger
     :alt: Continuous Integration Status
-.. |codecov| image:: https://codecov.io/github/cmanaha/python-elasticsearch-logger/coverage.svg?branch=master
-    :target: http://codecov.io/github/cmanaha/python-elasticsearch-logger?branch=master
+.. |codecov| image:: https://codecov.io/github/Rockin2/python-elasticsearch-ecs-logger/coverage.svg?branch=master
+    :target: http://codecov.io/github/Rockin2/python-elasticsearch-ecs-logger?branch=master
     :alt: Coverage!
-.. |gitter| image:: https://badges.gitter.im/Join%20Chat.svg
-    :target: https://gitter.im/cmanaha/python-elasticsearch-logger?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-    :alt: gitter
