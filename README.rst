@@ -12,7 +12,7 @@ Python Elasticsearch Log handler
 This library provides an Elasticsearch logging appender compatible with the
 python standard `logging <https://docs.python.org/2/library/logging.html>`_ library.
 
-The code source is in github at `https://github.com/cmanaha/python-elasticsearch-logger
+The code source is in github at `https://github.com/Rockin2/python-elasticsearch-ecs-logger
 <https://github.com/Rockin2/python-elasticsearch-ecs-logger>`_
 
 
