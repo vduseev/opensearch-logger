@@ -1,4 +1,5 @@
 Copyright 2020 Olivier Soucy
+
 Forked from https://github.com/cmanaha/python-elasticsearch-logger
 
 Copyright 2016 Carlos Manzanedo Rueda
