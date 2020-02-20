@@ -21,10 +21,10 @@ try:
 except ImportError:
     AWS4AUTH_SUPPORTED = False
 
-from cmreslogging.serializers import CMRESSerializer
+from elasticecslogging.serializers import ElasticECSSerializer
 
 
-class CMRESHandler(logging.Handler):
+class ElasticECSHandler(logging.Handler):
     """ Elasticsearch log handler
 
     Allows to log to elasticsearch into json format.
@@ -199,8 +199,8 @@ class CMRESHandler(logging.Handler):
         self._buffer = []
         self._buffer_lock = Lock()
         self._timer = None
-        self._index_name_func = CMRESHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
-        self.serializer = CMRESSerializer()
+        self._index_name_func = ElasticECSHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
+        self.serializer = ElasticECSSerializer()
 
     def __schedule_flush(self):
         if self._timer is None:
@@ -209,7 +209,7 @@ class CMRESHandler(logging.Handler):
             self._timer.start()
 
     def __get_es_client(self):
-        if self.auth_type == CMRESHandler.AuthType.NO_AUTH:
+        if self.auth_type == ElasticECSHandler.AuthType.NO_AUTH:
             if self._client is None:
                 self._client = Elasticsearch(hosts=self.hosts,
                                              use_ssl=self.use_ssl,
@@ -218,7 +218,7 @@ class CMRESHandler(logging.Handler):
                                              serializer=self.serializer)
             return self._client
 
-        if self.auth_type == CMRESHandler.AuthType.BASIC_AUTH:
+        if self.auth_type == ElasticECSHandler.AuthType.BASIC_AUTH:
             if self._client is None:
                 return Elasticsearch(hosts=self.hosts,
                                      http_auth=self.auth_details,
@@ -228,7 +228,7 @@ class CMRESHandler(logging.Handler):
                                      serializer=self.serializer)
             return self._client
 
-        if self.auth_type == CMRESHandler.AuthType.KERBEROS_AUTH:
+        if self.auth_type == ElasticECSHandler.AuthType.KERBEROS_AUTH:
             if not CMR_KERBEROS_SUPPORTED:
                 raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
             # For kerberos we return a new client each time to make sure the tokens are up to date
@@ -239,7 +239,7 @@ class CMRESHandler(logging.Handler):
                                  http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
                                  serializer=self.serializer)
 
-        if self.auth_type == CMRESHandler.AuthType.AWS_SIGNED_AUTH:
+        if self.auth_type == ElasticECSHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
                 raise EnvironmentError("AWS4Auth not available. Please install \"requests-aws4auth\"")
             if self._client is None:
@@ -327,7 +327,7 @@ class CMRESHandler(logging.Handler):
 
         rec = self.es_additional_fields.copy()
         for key, value in record.__dict__.items():
-            if key not in CMRESHandler.__LOGGING_FILTER_FIELDS:
+            if key not in ElasticECSHandler.__LOGGING_FILTER_FIELDS:
                 if key == "args":
                     value = tuple(str(arg) for arg in value)
                 rec[key] = "" if value is None else value

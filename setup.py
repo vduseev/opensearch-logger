@@ -23,28 +23,28 @@ dependencies = [
 ]
 
 # If python version is above 3.4 (built in enums supported enums)
-if sys.version_info <= (3,4):
+if sys.version_info <= (3, 4):
     dependencies.append('enum')
 
 print("List of dependencies : {0}".format(str(dependencies)))
 
 setup(
-    name='CMRESHandler',
+    name='ElasticECSHandler',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.0',
+    version='1.0.0a1',
 
-    description='Elasticsearch Log handler for the logging library',
+    description='Elasticsearch ECS Log handler for the logging library',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/cmanaha/python-elasticsearch-logger',
+    url='https://github.com/Rockin2/python-elasticsearch-ecs-logger',
 
     # Author details
-    author='Carlos Manzanedo Rueda',
-    author_email='c.manaha@gmail.com',
+    author='Olivier Soucy',
+    author_email='osoucy@zoho.com',
 
     # Choose your license
     license='Apache2',
@@ -54,7 +54,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 3 - Production/Alpha',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -72,7 +72,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='logging elasticsearch handler log django instrumentation',
+    keywords='logging elasticsearch handler ecs log django instrumentation',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().

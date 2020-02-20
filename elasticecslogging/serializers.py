@@ -3,7 +3,7 @@
 from elasticsearch.serializer import JSONSerializer
 
 
-class CMRESSerializer(JSONSerializer):
+class ElasticECSSerializer(JSONSerializer):
     """ JSON serializer inherited from the elastic search JSON serializer
 
     Allows to serialize logs for a elasticsearch use.
@@ -17,6 +17,6 @@ class CMRESSerializer(JSONSerializer):
         :params data: The data to serialize before sending it to elastic search
         """
         try:
-            return super(CMRESSerializer, self).default(data)
+            return super(ElasticECSSerializer, self).default(data)
         except TypeError:
             return str(data)
