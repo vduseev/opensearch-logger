@@ -22,10 +22,6 @@ dependencies = [
     'requests'
 ]
 
-# If python version is above 3.4 (built in enums supported enums)
-if sys.version_info <= (3, 4):
-    dependencies.append('enum')
-
 print("List of dependencies : {0}".format(str(dependencies)))
 
 setup(
@@ -93,6 +89,9 @@ setup(
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={
+        ':python_version<="3.4"': [
+            'enum'
+        ],
         'dev': ['check-manifest', 'six', 'pylint'],
         'test': ['coverage'],
     },
