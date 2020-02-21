@@ -7,6 +7,9 @@ python:
 services:
   - elasticsearch
 
+before_install:
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.6.0-amd64.deb && sudo dpkg -i --force-confnew elasticsearch-7.6.0-amd64.deb && sudo service elasticsearch restart
+
 install:
   - pip install tox-travis
   - pip install codecov
