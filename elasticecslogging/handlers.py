@@ -297,7 +297,6 @@ class ElasticECSHandler(logging.Handler):
                 actions = (
                     {
                         '_index': self._index_name_func.__func__(self.es_index_name),
-                        '_type': self.es_doc_type,
                         '_source': log_record
                     }
                     for log_record in logs_buffer
