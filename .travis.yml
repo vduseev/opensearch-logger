@@ -4,11 +4,8 @@ python:
   - "2.7"
   - "3.6"
 
-services:
-  - elasticsearch
-
 before_install:
-  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.6.0-amd64.deb && sudo dpkg -i --force-confnew elasticsearch-7.6.0-amd64.deb && sudo service elasticsearch restart
+  - curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.6.0-amd64.deb && sudo dpkg -i --force-confnew elasticsearch-7.6.0-amd64.deb && sudo service elasticsearch start
 
 install:
   - pip install tox-travis
