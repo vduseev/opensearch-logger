@@ -4,11 +4,6 @@ python:
   - "2.7"
   - "3.6"
 
-addons:
-  apt:
-    packages:
-      - default-jre
-
 services:
   - elasticsearch
 
