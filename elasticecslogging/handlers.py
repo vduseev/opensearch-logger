@@ -155,6 +155,8 @@ class ElasticECSHandler(logging.Handler):
                     the AWS region of the  the AWS Elasticsearch servers, for example```'us-east'
         :param auth_type: The authentication type to be used in the connection ```CMRESHandler.AuthType```
                     Currently, NO_AUTH, BASIC_AUTH, KERBEROS_AUTH are supported
+                    You can pass a str instead of the enum value. It is useful if you are using a config file for
+                    configuring the logging module.
         :param use_ssl: A boolean that defines if the communications should use SSL encrypted communication
         :param verify_ssl: A boolean that defines if the SSL certificates are validated or not
         :param buffer_size: An int, Once this size is reached on the internal buffer results are flushed into ES
@@ -166,6 +168,8 @@ class ElasticECSHandler(logging.Handler):
                     are selected from the IndexNameFrequency class (IndexNameFrequency.DAILY,
                     IndexNameFrequency.WEEKLY, IndexNameFrequency.MONTHLY, IndexNameFrequency.YEARLY). By default
                     it uses daily indices.
+                    You can pass a str instead of the enum value. It is useful if you are using a config file for
+                    configuring the logging module.
         :param es_doc_type: A string with the name of the document type that will be used ```python_log``` used
                     by default
         :param es_additional_fields: A dictionary with all the additional fields that you would like to add
@@ -181,13 +185,19 @@ class ElasticECSHandler(logging.Handler):
         self.aws_access_key = aws_access_key
         self.aws_secret_key = aws_secret_key
         self.aws_region = aws_region
-        self.auth_type = auth_type
+        if isinstance(auth_type, str):
+            self.auth_type = ElasticECSHandler.AuthType[auth_type]
+        else:
+            self.auth_type = auth_type
         self.use_ssl = use_ssl
         self.verify_certs = verify_ssl
         self.buffer_size = buffer_size
         self.flush_frequency_in_sec = flush_frequency_in_sec
         self.es_index_name = es_index_name
-        self.index_name_frequency = index_name_frequency
+        if isinstance(index_name_frequency, str):
+            self.index_name_frequency = ElasticECSHandler.IndexNameFrequency[index_name_frequency]
+        else:
+            self.index_name_frequency = index_name_frequency
         self.es_doc_type = es_doc_type
         self.es_additional_fields = es_additional_fields.copy()
         self.es_additional_fields.update({'host': socket.gethostname(),

@@ -90,7 +90,7 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         ':python_version<="3.4"': [
-            'enum'
+            'enum34'
         ],
         'dev': ['check-manifest', 'six', 'pylint'],
         'test': ['coverage'],
