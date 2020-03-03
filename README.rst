@@ -1,16 +1,20 @@
 
-===============
-CMRESHandler.py
-===============
+====================
+ElasticECSHandler.py
+====================
 
 |  |ci_status| |codecov|
 
 
-Python Elasticsearch Log handler
-********************************
+Python Elasticsearch ECS Log handler
+************************************
 
 This library provides an Elasticsearch logging appender compatible with the
 python standard `logging <https://docs.python.org/2/library/logging.html>`_ library.
+It follows the `Elastic Common Schema (ECS) <https://www.elastic.co/guide/en/ecs/current/index.html>`_ for the field names.
+To follow the ECS mapping, please use an index template.
+Look at `ECS Github repository <https://github.com/elastic/ecs>`_ for already generated ECS index templates or
+make your own index templates with Kibana or Elasticsearch Rest API.
 
 The code source is in github at `https://github.com/Rockin2/python-elasticsearch-ecs-logger
 <https://github.com/Rockin2/python-elasticsearch-ecs-logger>`_
@@ -20,14 +24,14 @@ Installation
 ============
 Install using pip::
 
-    pip install CMRESHandler
+    pip install ElasticECSHandler
 
 Requirements Python 2
 =====================
 This library requires the following dependencies
  - elasticsearch
  - requests
- - enum
+ - enum34
 
 
 Requirements Python 3
