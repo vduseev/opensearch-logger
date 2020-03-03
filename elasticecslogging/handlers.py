@@ -1,13 +1,17 @@
 """ Elasticsearch logging handler
 """
 
-import logging
+import copy
 import datetime
+import logging
 import socket
+import uuid
+from collections import defaultdict
 from threading import Timer, Lock
-from enum import Enum
-from elasticsearch import helpers as eshelpers
+
 from elasticsearch import Elasticsearch, RequestsHttpConnection
+from elasticsearch import helpers as eshelpers
+from enum import Enum
 
 try:
     from requests_kerberos import HTTPKerberosAuth, DISABLED
@@ -73,12 +77,16 @@ class ElasticECSHandler(logging.Handler):
     __DEFAULT_ADDITIONAL_FIELDS = {}
     __DEFAULT_ES_INDEX_NAME = 'python_logger'
     __DEFAULT_RAISE_ON_EXCEPTION = False
-    __DEFAULT_TIMESTAMP_FIELD_NAME = "@timestamp"
 
     __LOGGING_FILTER_FIELDS = ['msecs',
                                'relativeCreated',
                                'levelno',
-                               'created']
+                               'exc_text',
+                               'msg']
+
+    __AGENT_TYPE = 'python-elasticsearch-ecs-logger'
+    __AGENT_VERSION = '1.0.0a1'
+    __ECS_VERSION = "1.4.0"
 
     @staticmethod
     def _get_daily_index_name(es_index_name):
@@ -135,8 +143,7 @@ class ElasticECSHandler(logging.Handler):
                  es_index_name=__DEFAULT_ES_INDEX_NAME,
                  index_name_frequency=__DEFAULT_INDEX_FREQUENCY,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
-                 raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
-                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
+                 raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -169,7 +176,7 @@ class ElasticECSHandler(logging.Handler):
                     You can pass a str instead of the enum value. It is useful if you are using a config file for
                     configuring the logging module.
         :param es_additional_fields: A dictionary with all the additional fields that you would like to add
-                    to the logs, such the application, environment, etc.
+                    to the logs, such the application, environment, etc. You can nest dicts to follow ecs convention.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
         :return: A ready to be used CMRESHandler.
@@ -194,11 +201,24 @@ class ElasticECSHandler(logging.Handler):
             self.index_name_frequency = ElasticECSHandler.IndexNameFrequency[index_name_frequency]
         else:
             self.index_name_frequency = index_name_frequency
+
         self.es_additional_fields = es_additional_fields.copy()
-        self.es_additional_fields.update({'host': socket.gethostname(),
-                                          'host_ip': socket.gethostbyname(socket.gethostname())})
+
+        self.es_additional_fields.setdefault('ecs', {})['version'] = ElasticECSHandler.__ECS_VERSION
+
+        agent_dict = self.es_additional_fields.setdefault('agent', {})
+        agent_dict['ephemeral_id'] = uuid.uuid4()
+        agent_dict['type'] = ElasticECSHandler.__AGENT_TYPE
+        agent_dict['version'] = ElasticECSHandler.__AGENT_VERSION
+
+        host_dict = self.es_additional_fields.setdefault('host', {})
+        host_name = socket.gethostname()
+        host_dict['hostname'] = host_name
+        host_dict['name'] = host_name
+        host_dict['id'] = host_name
+        host_dict['ip'] = socket.gethostbyname(socket.gethostname())
+
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
-        self.default_timestamp_field_name = default_timestamp_field_name
 
         self._client = None
         self._buffer = []
@@ -328,18 +348,86 @@ class ElasticECSHandler(logging.Handler):
         :return: None
         """
         self.format(record)
-
-        rec = self.es_additional_fields.copy()
-        for key, value in record.__dict__.items():
-            if key not in ElasticECSHandler.__LOGGING_FILTER_FIELDS:
-                if key == "args":
-                    value = tuple(str(arg) for arg in value)
-                rec[key] = "" if value is None else value
-        rec[self.default_timestamp_field_name] = self.__get_es_datetime_str(record.created)
+        es_record = self._log_record_to_ecs_fields(record)
         with self._buffer_lock:
-            self._buffer.append(rec)
+            self._buffer.append(es_record)
 
         if len(self._buffer) >= self.buffer_size:
             self.flush()
         else:
             self.__schedule_flush()
+
+    def _log_record_to_ecs_fields(self, log_record):
+        """
+        This function take the original logging.LogRecord and map its attributes to ecs fields.
+
+        :param log_record: The original logging.LogRecord.
+        :return The elasticsearch document that will be sent.
+        """
+        log_record_dict = log_record.__dict__.copy()
+        es_record = copy.deepcopy(self.es_additional_fields)
+
+        if 'created' in log_record_dict:
+            es_record['@timestamp'] = self.__get_es_datetime_str(log_record_dict.pop('created'))
+
+        if 'message' in log_record_dict:
+            message = log_record_dict.pop('message')
+            es_record['message'] = message
+            es_record.setdefault('log', {})['original'] = message
+
+        if 'levelname' in log_record_dict:
+            es_record.setdefault('log', {})['level'] = log_record_dict.pop('levelname')
+
+        if 'name' in log_record_dict:
+            es_record.setdefault('log', {})['logger'] = log_record_dict.pop('name')
+
+        if 'lineno' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('origin', {}).setdefault('file', {})[
+                'line'] = log_record_dict.pop('lineno')
+
+        if 'filename' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('origin', {}).setdefault('file', {})[
+                'name'] = log_record_dict.pop('filename')
+
+        if 'pathname' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('origin', {}).setdefault('file', {})[
+                'path'] = log_record_dict.pop('pathname')
+
+        if 'funcName' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('origin', {})['function'] = log_record_dict.pop('funcName')
+
+        if 'module' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('origin', {})['module'] = log_record_dict.pop('module')
+
+        if 'processName' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('process', {})['name'] = log_record_dict.pop('processName')
+
+        if 'process' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('process', {})['pid'] = log_record_dict.pop('process')
+
+        if 'threadName' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('thread', {})['name'] = log_record_dict.pop('threadName')
+
+        if 'thread' in log_record_dict:
+            es_record.setdefault('log', {}).setdefault('thread', {})['tid'] = log_record_dict.pop('thread')
+
+        if 'exc_info' in log_record_dict:
+            exc_info = log_record_dict.pop('exc_info')
+            if exc_info is not None:
+                exc_type, exc_value, traceback = exc_info
+                es_record['error'] = {
+                    'code': str(exc_type),
+                    'id': uuid.uuid4(),
+                    'type': str(exc_type),
+                    'message': str(exc_value),
+                    'stack_trace': str(traceback)
+                }
+
+        # Copy unknown attributes of the log_record object.
+        for key, value in log_record_dict.items():
+            if key not in ElasticECSHandler.__LOGGING_FILTER_FIELDS:
+                if key == "args":
+                    value = tuple(str(arg) for arg in value)
+                es_record[key] = "" if value is None else value
+
+        return es_record
