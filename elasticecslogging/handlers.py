@@ -6,7 +6,6 @@ import datetime
 import logging
 import socket
 import uuid
-from collections import defaultdict
 from threading import Timer, Lock
 
 from elasticsearch import Elasticsearch, RequestsHttpConnection
