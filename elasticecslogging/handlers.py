@@ -408,7 +408,7 @@ class ElasticECSHandler(logging.Handler):
             es_record.setdefault('log', {}).setdefault('thread', {})['name'] = log_record_dict.pop('threadName')
 
         if 'thread' in log_record_dict:
-            es_record.setdefault('log', {}).setdefault('thread', {})['tid'] = log_record_dict.pop('thread')
+            es_record.setdefault('log', {}).setdefault('thread', {})['id'] = log_record_dict.pop('thread')
 
         if 'exc_info' in log_record_dict:
             exc_info = log_record_dict.pop('exc_info')
