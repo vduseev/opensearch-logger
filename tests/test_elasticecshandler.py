@@ -44,7 +44,6 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     buffer_size=2,
                                     flush_frequency_in_sec=1000,
                                     es_index_name="pythontest",
-                                    es_additional_fields={'App': 'Test', 'Environment': 'Dev'},
                                     raise_on_indexing_exceptions=True)
 
         es_test_server_is_up = handler.test_es_source()
@@ -65,7 +64,8 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     auth_type=ElasticECSHandler.AuthType.NO_AUTH,
                                     use_ssl=False,
                                     es_index_name="pythontest",
-                                    es_additional_fields={'App': 'Test', 'Environment': 'Dev'},
+                                    es_additional_fields={'App': 'Test', 'Environment': 'Dev',
+                                                          'Nested': {'One': 1, 'Two': 2}},
                                     raise_on_indexing_exceptions=True)
 
         es_test_server_is_up = handler.test_es_source()
@@ -75,11 +75,37 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
         log = logging.getLogger("PythonTest")
         log.addHandler(handler)
         log.warning("Extra arguments Message", extra={"Arg1": 300, "Arg2": 400})
-        self.assertEqual(1, len(handler._buffer))
+        log.warning("Another Log")
+        self.assertEqual(2, len(handler._buffer))
         self.assertEqual(handler._buffer[0]['Arg1'], 300)
         self.assertEqual(handler._buffer[0]['Arg2'], 400)
         self.assertEqual(handler._buffer[0]['App'], 'Test')
         self.assertEqual(handler._buffer[0]['Environment'], 'Dev')
+        self.assertEqual(handler._buffer[0]['Nested']['One'], 1)
+        self.assertEqual(handler._buffer[0]['Nested']['Two'], 2)
+        handler.flush()
+        self.assertEqual(0, len(handler._buffer))
+
+    def test_es_log_exception_insertion(self):
+        handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+                                    auth_type=ElasticECSHandler.AuthType.NO_AUTH,
+                                    use_ssl=False,
+                                    es_index_name="pythontest",
+                                    raise_on_indexing_exceptions=True)
+
+        es_test_server_is_up = handler.test_es_source()
+        self.log.info("ES services status is:  {0!s}".format(es_test_server_is_up))
+        self.assertEqual(True, es_test_server_is_up)
+
+        log = logging.getLogger("PythonTest")
+        log.addHandler(handler)
+
+        try:
+            _ = 21/0
+        except ZeroDivisionError:
+            log.exception('Division Error')
+
+        self.assertEqual(1, len(handler._buffer))
         handler.flush()
         self.assertEqual(0, len(handler._buffer))
 
@@ -89,7 +115,6 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     use_ssl=False,
                                     flush_frequency_in_sec=0.1,
                                     es_index_name="pythontest",
-                                    es_additional_fields={'App': 'Test', 'Environment': 'Dev'},
                                     raise_on_indexing_exceptions=True)
 
         es_test_server_is_up = handler.test_es_source()
@@ -98,12 +123,8 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
 
         log = logging.getLogger("PythonTest")
         log.addHandler(handler)
-        log.warning("Extra arguments Message", extra={"Arg1": 300, "Arg2": 400})
+        log.warning("Warning Message")
         self.assertEqual(1, len(handler._buffer))
-        self.assertEqual(handler._buffer[0]['Arg1'], 300)
-        self.assertEqual(handler._buffer[0]['Arg2'], 400)
-        self.assertEqual(handler._buffer[0]['App'], 'Test')
-        self.assertEqual(handler._buffer[0]['Environment'], 'Dev')
         time.sleep(1)
         self.assertEqual(0, len(handler._buffer))
 

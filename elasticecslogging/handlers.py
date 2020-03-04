@@ -5,6 +5,7 @@ import copy
 import datetime
 import logging
 import socket
+import traceback
 import uuid
 from threading import Timer, Lock
 
@@ -413,13 +414,13 @@ class ElasticECSHandler(logging.Handler):
         if 'exc_info' in log_record_dict:
             exc_info = log_record_dict.pop('exc_info')
             if exc_info is not None:
-                exc_type, exc_value, traceback = exc_info
+                exc_type, exc_value, traceback_object = exc_info
                 es_record['error'] = {
-                    'code': str(exc_type),
+                    'code': exc_type.__name__,
                     'id': uuid.uuid4(),
-                    'type': str(exc_type),
+                    'type': exc_type.__name__,
                     'message': str(exc_value),
-                    'stack_trace': str(traceback)
+                    'stack_trace': "".join(traceback.format_exception(exc_type, exc_value, traceback_object))
                 }
 
         # Copy unknown attributes of the log_record object.
