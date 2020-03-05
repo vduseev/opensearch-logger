@@ -1,0 +1,185 @@
+{
+  "_meta": {
+    "version": "1.0.0"
+  },
+  "date_detection": false,
+  "dynamic_templates": [
+    {
+      "strings_as_keyword": {
+        "mapping": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "match_mapping_type": "string"
+      }
+    }
+  ],
+  "properties": {
+    "agent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "id": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "ephemeral_id": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "type": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "version": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        }
+      }
+    },
+    "log": {
+      "type": "object",
+      "properties": {
+        "process": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "ignore_above": 1024,
+              "type": "keyword"
+            },
+            "pid": {
+              "type": "long"
+            }
+          }
+        },
+        "original": {
+          "ignore_above": 1024,
+          "index": false,
+          "type": "keyword",
+          "doc_values": false
+        },
+        "level": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "logger": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "origin": {
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "type": "integer"
+                },
+                "name": {
+                  "ignore_above": 1024,
+                  "type": "keyword"
+                },
+                "path": {
+                  "ignore_above": 1024,
+                  "type": "keyword"
+                }
+              }
+            },
+            "function": {
+              "ignore_above": 1024,
+              "type": "keyword"
+            },
+            "module": {
+              "ignore_above": 1024,
+              "type": "keyword"
+            }
+          }
+        },
+        "thread": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "keyword",
+              "ignore_above": 1024
+            },
+            "id": {
+              "type": "long"
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "id": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "stack_trace": {
+          "ignore_above": 1024,
+          "index": false,
+          "type": "keyword",
+          "fields": {
+            "text": {
+              "norms": false,
+              "type": "text"
+            }
+          },
+          "doc_values": false
+        },
+        "message": {
+          "norms": false,
+          "type": "text"
+        },
+        "type": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        }
+      }
+    },
+    "ecs": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        }
+      }
+    },
+    "host": {
+      "type": "object",
+      "properties": {
+        "hostname": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "ip": {
+          "type": "ip"
+        },
+        "name": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        },
+        "id": {
+          "ignore_above": 1024,
+          "type": "keyword"
+        }
+      }
+    },
+    "message": {
+      "norms": false,
+      "type": "text"
+    },
+    "@timestamp": {
+      "type": "date"
+    }
+  }
+}

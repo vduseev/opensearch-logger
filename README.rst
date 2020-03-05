@@ -13,8 +13,10 @@ This library provides an Elasticsearch logging appender compatible with the
 python standard `logging <https://docs.python.org/2/library/logging.html>`_ library.
 It follows the `Elastic Common Schema (ECS) <https://www.elastic.co/guide/en/ecs/current/index.html>`_ for the field names.
 To follow the ECS mapping, please use an index template.
-Look at `ECS Github repository <https://github.com/elastic/ecs>`_ for already generated ECS index templates or
-make your own index templates with Kibana or Elasticsearch Rest API.
+Look at `ECS Github repository <https://github.com/elastic/ecs>`_ for already generated ECS mappings objects or
+in the mappings folder of this repository.
+There is one with the full ecs mappings plus some added fields used by this handler.
+The other one just defines mappings for fields used by this handler.
 
 The code source is in github at `https://github.com/Rockin2/python-elasticsearch-ecs-logger
 <https://github.com/Rockin2/python-elasticsearch-ecs-logger>`_
