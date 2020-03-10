@@ -190,6 +190,17 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
             ElasticECSHandler._get_yearly_index_name(index_name)
         )
 
+        handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+                                    auth_type=ElasticECSHandler.AuthType.NO_AUTH,
+                                    es_index_name=index_name,
+                                    use_ssl=False,
+                                    index_name_frequency=ElasticECSHandler.IndexNameFrequency.NEVER,
+                                    raise_on_indexing_exceptions=True)
+        self.assertEqual(
+            handler._index_name_func.__func__(index_name),
+            ElasticECSHandler._get_never_index_name(index_name)
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
