@@ -1,8 +1,9 @@
-import unittest
 import logging
-import time
 import os
 import sys
+import time
+import unittest
+
 sys.path.insert(0, os.path.abspath('.'))
 from elasticecslogging.handlers import ElasticECSHandler
 
@@ -58,6 +59,50 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
         self.assertEqual(0, len(handler._buffer))
         handler.close()
 
+    def test_es_log_with_additional_env_fields(self):
+        handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
+                                    auth_type=ElasticECSHandler.AuthType.NO_AUTH,
+                                    use_ssl=False,
+                                    es_index_name="pythontest",
+                                    es_additional_fields={'App': 'Test', 'Nested': {'One': '1', 'Two': '2'}},
+                                    es_additional_fields_in_env={'App': 'ENV_APP', 'Environment': 'ENV_ENV',
+                                                                 'Nested': {'One': 'ENV_ONE'}},
+                                    raise_on_indexing_exceptions=True)
+
+        es_test_server_is_up = handler.test_es_source()
+        self.log.info("ES services status is:  {0!s}".format(es_test_server_is_up))
+        self.assertEqual(True, es_test_server_is_up)
+
+        log = logging.getLogger("PythonTest")
+        log.addHandler(handler)
+
+        log.warning("Test1 without environment variables set.")
+        self.assertEqual(1, len(handler._buffer))
+        self.assertEqual('Test', handler._buffer[0]['App'])
+        self.assertEqual('1', handler._buffer[0]['Nested']['One'])
+        self.assertEqual('2', handler._buffer[0]['Nested']['Two'])
+        self.assertNotIn('Environment', handler._buffer[0])
+
+        handler.flush()
+        self.assertEqual(0, len(handler._buffer))
+
+        os.environ['ENV_APP'] = 'Test2'
+        os.environ['ENV_ENV'] = 'Dev'
+        os.environ['ENV_ONE'] = 'One'
+        log.warning("Test2 with environment variables set.")
+        self.assertEqual(1, len(handler._buffer))
+        self.assertEqual('Test2', handler._buffer[0]['App'])
+        self.assertEqual('Dev', handler._buffer[0]['Environment'])
+        self.assertEqual('One', handler._buffer[0]['Nested']['One'])
+        self.assertEqual('2', handler._buffer[0]['Nested']['Two'])
+
+        del os.environ['ENV_APP']
+        del os.environ['ENV_ENV']
+        del os.environ['ENV_ONE']
+
+        handler.flush()
+        self.assertEqual(0, len(handler._buffer))
+
     def test_es_log_extra_argument_insertion(self):
         self.log.info("About to test elasticsearch insertion")
         handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
@@ -65,7 +110,7 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     use_ssl=False,
                                     es_index_name="pythontest",
                                     es_additional_fields={'App': 'Test', 'Environment': 'Dev',
-                                                          'Nested': {'One': 1, 'Two': 2}},
+                                                          'Nested': {'One': '1', 'Two': '2'}},
                                     raise_on_indexing_exceptions=True)
 
         es_test_server_is_up = handler.test_es_source()
@@ -77,12 +122,12 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
         log.warning("Extra arguments Message", extra={"Arg1": 300, "Arg2": 400})
         log.warning("Another Log")
         self.assertEqual(2, len(handler._buffer))
-        self.assertEqual(handler._buffer[0]['Arg1'], 300)
-        self.assertEqual(handler._buffer[0]['Arg2'], 400)
-        self.assertEqual(handler._buffer[0]['App'], 'Test')
-        self.assertEqual(handler._buffer[0]['Environment'], 'Dev')
-        self.assertEqual(handler._buffer[0]['Nested']['One'], 1)
-        self.assertEqual(handler._buffer[0]['Nested']['Two'], 2)
+        self.assertEqual(300, handler._buffer[0]['Arg1'])
+        self.assertEqual(400, handler._buffer[0]['Arg2'])
+        self.assertEqual('Test', handler._buffer[0]['App'])
+        self.assertEqual('Dev', handler._buffer[0]['Environment'])
+        self.assertEqual('1', handler._buffer[0]['Nested']['One'])
+        self.assertEqual('2', handler._buffer[0]['Nested']['Two'])
         handler.flush()
         self.assertEqual(0, len(handler._buffer))
 
@@ -153,8 +198,8 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     index_name_frequency=ElasticECSHandler.IndexNameFrequency.DAILY,
                                     raise_on_indexing_exceptions=True)
         self.assertEqual(
-            handler._index_name_func.__func__(index_name),
-            ElasticECSHandler._get_daily_index_name(index_name)
+            ElasticECSHandler._get_daily_index_name(index_name),
+            handler._index_name_func.__func__(index_name)
         )
 
         handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
@@ -164,8 +209,8 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     index_name_frequency=ElasticECSHandler.IndexNameFrequency.WEEKLY,
                                     raise_on_indexing_exceptions=True)
         self.assertEqual(
-            handler._index_name_func.__func__(index_name),
-            ElasticECSHandler._get_weekly_index_name(index_name)
+            ElasticECSHandler._get_weekly_index_name(index_name),
+            handler._index_name_func.__func__(index_name)
         )
 
         handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
@@ -175,8 +220,8 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     index_name_frequency=ElasticECSHandler.IndexNameFrequency.MONTHLY,
                                     raise_on_indexing_exceptions=True)
         self.assertEqual(
-            handler._index_name_func.__func__(index_name),
-            ElasticECSHandler._get_monthly_index_name(index_name)
+            ElasticECSHandler._get_monthly_index_name(index_name),
+            handler._index_name_func.__func__(index_name)
         )
 
         handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
@@ -186,8 +231,8 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     index_name_frequency=ElasticECSHandler.IndexNameFrequency.YEARLY,
                                     raise_on_indexing_exceptions=True)
         self.assertEqual(
-            handler._index_name_func.__func__(index_name),
-            ElasticECSHandler._get_yearly_index_name(index_name)
+            ElasticECSHandler._get_yearly_index_name(index_name),
+            handler._index_name_func.__func__(index_name)
         )
 
         handler = ElasticECSHandler(hosts=[{'host': self.getESHost(), 'port': self.getESPort()}],
@@ -197,8 +242,8 @@ class ElasticECSHandlerTestCase(unittest.TestCase):
                                     index_name_frequency=ElasticECSHandler.IndexNameFrequency.NEVER,
                                     raise_on_indexing_exceptions=True)
         self.assertEqual(
-            handler._index_name_func.__func__(index_name),
-            ElasticECSHandler._get_never_index_name(index_name)
+            ElasticECSHandler._get_never_index_name(index_name),
+            handler._index_name_func.__func__(index_name)
         )
 
 

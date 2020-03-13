@@ -1,9 +1,11 @@
 """ Elasticsearch logging handler
 """
 
+import collections
 import copy
 import datetime
 import logging
+import os
 import socket
 import traceback
 import uuid
@@ -77,6 +79,7 @@ class ElasticECSHandler(logging.Handler):
     __DEFAULT_BUFFER_SIZE = 1000
     __DEFAULT_FLUSH_FREQ_INSEC = 1
     __DEFAULT_ADDITIONAL_FIELDS = {}
+    __DEFAULT_ADDITIONAL_FIELDS_IN_ENV = {}
     __DEFAULT_ES_INDEX_NAME = 'python_logger'
     __DEFAULT_RAISE_ON_EXCEPTION = False
 
@@ -87,7 +90,7 @@ class ElasticECSHandler(logging.Handler):
                                'msg']
 
     __AGENT_TYPE = 'python-elasticsearch-ecs-logger'
-    __AGENT_VERSION = '1.0.0a1'
+    __AGENT_VERSION = '1.0.0b3'
     __ECS_VERSION = "1.4.0"
 
     @staticmethod
@@ -154,6 +157,7 @@ class ElasticECSHandler(logging.Handler):
                  es_index_name=__DEFAULT_ES_INDEX_NAME,
                  index_name_frequency=__DEFAULT_INDEX_FREQUENCY,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
+                 es_additional_fields_in_env=__DEFAULT_ADDITIONAL_FIELDS_IN_ENV,
                  raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION):
         """ Handler constructor
 
@@ -188,6 +192,12 @@ class ElasticECSHandler(logging.Handler):
                     configuring the logging module.
         :param es_additional_fields: A dictionary with all the additional fields that you would like to add
                     to the logs, such the application, environment, etc. You can nest dicts to follow ecs convention.
+        :param es_additional_fields_in_env: A dictionary with all the additional fields that you would like to add
+                    to the logs, such the application, environment, etc. You can nest dicts to follow ecs convention.
+                    The values are environment variables keys. At each elastic document created, the values of these
+                    environment variables will be read. If an environment variable for a field doesn't exists, the value
+                    of the same field in es_additional_fields will be taken if it exists. In last resort, there will be
+                    no value for the field.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
         :return: A ready to be used CMRESHandler.
@@ -213,8 +223,7 @@ class ElasticECSHandler(logging.Handler):
         else:
             self.index_name_frequency = index_name_frequency
 
-        self.es_additional_fields = es_additional_fields.copy()
-
+        self.es_additional_fields = copy.deepcopy(es_additional_fields.copy())
         self.es_additional_fields.setdefault('ecs', {})['version'] = ElasticECSHandler.__ECS_VERSION
 
         agent_dict = self.es_additional_fields.setdefault('agent', {})
@@ -228,6 +237,8 @@ class ElasticECSHandler(logging.Handler):
         host_dict['name'] = host_name
         host_dict['id'] = host_name
         host_dict['ip'] = socket.gethostbyname(socket.gethostname())
+
+        self.es_additional_fields_in_env = copy.deepcopy(es_additional_fields_in_env)
 
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
 
@@ -377,6 +388,7 @@ class ElasticECSHandler(logging.Handler):
         """
         log_record_dict = log_record.__dict__.copy()
         es_record = copy.deepcopy(self.es_additional_fields)
+        self._add_additional_fields_in_env(es_record)
 
         if 'created' in log_record_dict:
             es_record['@timestamp'] = self.__get_es_datetime_str(log_record_dict.pop('created'))
@@ -442,3 +454,43 @@ class ElasticECSHandler(logging.Handler):
                 es_record[key] = "" if value is None else value
 
         return es_record
+
+    def _add_additional_fields_in_env(self, es_record):
+        """
+        Add the additional fields with their values in environment variables.
+        :param es_record: The record where the additional fields with
+                          their values fetched in environment variables will be added or overridden.
+        """
+        additional_fields_in_env_values = _fetch_additional_fields_in_env(self.es_additional_fields_in_env)
+        _update_nested_dict(es_record, additional_fields_in_env_values)
+
+
+def _fetch_additional_fields_in_env(additional_fields_env_keys):
+    """
+    Walk the additional_fields_env_keys and fetch the values from the environment variables.
+    :param additional_fields_env_keys: A dictionnary with the additional_fields_in_env with their keys.
+    :return: A dictionary with the additional_fields_in_env with their values fetched instead of their keys.
+    """
+    additional_fields_env_values = {}
+    for dict_key, dict_value in additional_fields_env_keys.items():
+        if isinstance(dict_value, collections.Mapping):
+            nested_dict_env_keys = dict_value
+            additional_fields_env_values[dict_key] = _fetch_additional_fields_in_env(nested_dict_env_keys)
+        else:
+            if dict_value in os.environ:
+                additional_fields_env_values[dict_key] = os.environ[dict_value]
+    return additional_fields_env_values
+
+
+def _update_nested_dict(source, override):
+    """
+    Update the source dictionary with the override dictionary.
+
+    :param source: The dictionary to update.
+    :param override: The dictionary that will update the source dictionary.
+    """
+    for key, value in override.items():
+        if isinstance(value, collections.Mapping):
+            _update_nested_dict(source.setdefault(key, {}), value)
+        else:
+            source[key] = value
