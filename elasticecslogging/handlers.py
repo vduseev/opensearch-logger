@@ -238,7 +238,7 @@ class ElasticECSHandler(logging.Handler):
         host_dict['id'] = host_name
         host_dict['ip'] = socket.gethostbyname(socket.gethostname())
 
-        self.es_additional_fields_in_env = copy.deepcopy(es_additional_fields_in_env)
+        self.es_additional_fields_in_env = copy.deepcopy(es_additional_fields_in_env.copy())
 
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
 
