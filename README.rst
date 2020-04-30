@@ -187,7 +187,7 @@ Contributing back
 -----------------
 Feel free to use this as is or even better, feel free to fork and send your pull requests over.
 
-.. |ci_status| image:: https://travis-ci.com/innovmetric/python-elasticsearch-ecs-logger.svg?branch=master
+.. |ci_status| image:: https://travis-ci.org/innovmetric/python-elasticsearch-ecs-logger.svg?branch=master
     :target: https://travis-ci.org/innovmetric/python-elasticsearch-ecs-logger
     :alt: Continuous Integration Status
 .. |codecov| image:: https://codecov.io/github/innovmetric/python-elasticsearch-ecs-logger/coverage.svg?branch=master
