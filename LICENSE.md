@@ -1,4 +1,4 @@
-Copyright 2020 Olivier Soucy
+Copyright 2020 InnovMetric Software
 
 Forked from https://github.com/cmanaha/python-elasticsearch-logger
 
