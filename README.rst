@@ -18,8 +18,8 @@ in the mappings folder of this repository.
 There is one with the full ecs mappings plus some added fields used by this handler.
 The other one just defines mappings for fields used by this handler.
 
-The code source is in github at `https://github.com/Rockin2/python-elasticsearch-ecs-logger
-<https://github.com/Rockin2/python-elasticsearch-ecs-logger>`_.
+The code source is in github at `https://github.com/innovmetric/python-elasticsearch-ecs-logger
+<https://github.com/innovmetric/python-elasticsearch-ecs-logger>`_.
 
 
 Installation
@@ -187,9 +187,9 @@ Contributing back
 -----------------
 Feel free to use this as is or even better, feel free to fork and send your pull requests over.
 
-.. |ci_status| image:: https://travis-ci.com/Rockin2/python-elasticsearch-ecs-logger.svg?branch=master
-    :target: https://travis-ci.org/Rockin2/python-elasticsearch-ecs-logger
+.. |ci_status| image:: https://travis-ci.org/innovmetric/python-elasticsearch-ecs-logger.svg?branch=master
+    :target: https://travis-ci.org/innovmetric/python-elasticsearch-ecs-logger
     :alt: Continuous Integration Status
-.. |codecov| image:: https://codecov.io/github/Rockin2/python-elasticsearch-ecs-logger/coverage.svg?branch=master
-    :target: http://codecov.io/github/Rockin2/python-elasticsearch-ecs-logger?branch=master
+.. |codecov| image:: https://codecov.io/github/innovmetric/python-elasticsearch-ecs-logger/coverage.svg?branch=master
+    :target: http://codecov.io/github/innovmetric/python-elasticsearch-ecs-logger?branch=master
     :alt: Coverage!
