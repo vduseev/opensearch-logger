@@ -164,16 +164,16 @@ class ElasticECSHandler(logging.Handler):
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
                     in the format ```[{'host':'host1','port':9200}, {'host':'host2','port':9200}]``` to
                     make sure the client supports failover of one of the instertion nodes
-        :param auth_details: When ```CMRESHandler.AuthType.BASIC_AUTH``` is used this argument must contain
+        :param auth_details: When ```ElasticECSHandler.AuthType.BASIC_AUTH``` is used this argument must contain
                     a tuple of string with the user and password that will be used to authenticate against
                     the Elasticsearch servers, for example```('User','Password')
-        :param aws_access_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+        :param aws_access_key: When ```ElasticECSHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS key id of the  the AWS IAM user
-        :param aws_secret_key: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+        :param aws_secret_key: When ```ElasticECSHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS secret key of the  the AWS IAM user
-        :param aws_region: When ```CMRESHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
+        :param aws_region: When ```ElasticECSHandler.AuthType.AWS_SIGNED_AUTH``` is used this argument must contain
                     the AWS region of the  the AWS Elasticsearch servers, for example```'us-east'
-        :param auth_type: The authentication type to be used in the connection ```CMRESHandler.AuthType```
+        :param auth_type: The authentication type to be used in the connection ```ElasticECSHandler.AuthType```
                     Currently, NO_AUTH, BASIC_AUTH, KERBEROS_AUTH are supported
                     You can pass a str instead of the enum value. It is useful if you are using a config file for
                     configuring the logging module.
@@ -200,7 +200,7 @@ class ElasticECSHandler(logging.Handler):
                     no value for the field.
         :param raise_on_indexing_exceptions: A boolean, True only for debugging purposes to raise exceptions
                     caused when
-        :return: A ready to be used CMRESHandler.
+        :return: A ready to be used ElasticECSHandler.
         """
         logging.Handler.__init__(self)
 
