@@ -46,15 +46,17 @@ Additional requirements for Kerberos support
 ============================================
 Additionally, the package support optionally kerberos authentication by adding the following dependecy
  - requests-kerberos
+
 .. warning::
-  Unfortunately, we don't have the time to test kerberos authenticationon support. We let the code here because it is simple and it should work.
+   Unfortunately, we don't have the time to test kerberos authenticationon support. We let the code here because it is simple and it should work.
 
 Additional requirements for AWS IAM user authentication (request signing)
 =========================================================================
 Additionally, the package support optionally AWS IAM user authentication by adding the following dependecy
  - requests-aws4auth
+
 .. warning::
-  Unfortunately, we don't have the time to test AWS IAM user authentication support. We let the code here because it is simple and it should work.
+   Unfortunately, we don't have the time to test AWS IAM user authentication support. We let the code here because it is simple and it should work.
 
 Using the handler in  your program
 ==================================
