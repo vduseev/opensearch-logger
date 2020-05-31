@@ -123,7 +123,6 @@ The constructors takes the following parameters:
    ``ElasticECSHandler.IndexNameFrequency.DAILY``, ``ElasticECSHandler.IndexNameFrequency.WEEKLY``,
    ``ElasticECSHandler.IndexNameFrequency.MONTHLY``, ``ElasticECSHandler.IndexNameFrequency.YEARLY`` and
    ``ElasticECSHandler.IndexNameFrequency.NEVER``. By default the daily rotation is used.
- - es_doc_type: A string with the name of the document type that will be used ``python_log`` used by default
  - es_additional_fields: A nested dictionary with all the additional fields that you would like to add to the logs.
  - es_additional_fields_in_env: A nested dictionary with all the additional fields that you would like to add to the logs.
    The values are environment variables keys. At each elastic document created, the values of these environment variables will be read.
