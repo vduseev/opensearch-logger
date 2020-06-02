@@ -14,9 +14,9 @@ python standard `logging <https://docs.python.org/2/library/logging.html>`_ libr
 It follows the `Elastic Common Schema (ECS) <https://www.elastic.co/guide/en/ecs/current/index.html>`_ for the field names.
 To follow the ECS mapping, please use an index template.
 Look at `ECS Github repository <https://github.com/elastic/ecs>`_ for already generated ECS mappings objects or
-in the mappings folder of this repository.
-There is one with the full ecs mappings plus some added fields used by this handler.
-The other one just defines mappings for fields used by this handler.
+in the mappings folder of this repository where you will find a mapping file with the fields used by this handler.
+This handler use some custom fields. They are referenced in the mapping file.
+
 
 The code source is in github at `https://github.com/innovmetric/python-elasticsearch-ecs-logger
 <https://github.com/innovmetric/python-elasticsearch-ecs-logger>`_.
