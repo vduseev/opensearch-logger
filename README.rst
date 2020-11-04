@@ -18,8 +18,8 @@ in the mappings folder of this repository where you will find a mapping file wit
 This handler use some custom fields. They are referenced in the mapping file.
 
 
-The code source is in github at `https://github.com/innovmetric/python-elasticsearch-ecs-logger
-<https://github.com/innovmetric/python-elasticsearch-ecs-logger>`_.
+The code source is in github at `https://github.com/IMInterne/python-elasticsearch-ecs-logger
+<https://github.com/IMInterne/python-elasticsearch-ecs-logger>`_.
 
 
 Installation
