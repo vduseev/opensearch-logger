@@ -3,6 +3,7 @@
 ElasticECSHandler.py
 ====================
 
+|  |license| |versions| |status| |downloads|
 |  |ci_status| |codecov|
 
 
@@ -192,6 +193,18 @@ Contributing back
 -----------------
 Feel free to use this as is or even better, feel free to fork and send your pull requests over.
 
+.. |downloads| image:: https://img.shields.io/pypi/dd/ElasticECSHandler.svg
+    :target: https://pypi.python.org/pypi/ElasticECSHandler
+    :alt: Daily PyPI downloads
+.. |versions| image:: https://img.shields.io/pypi/pyversions/ElasticECSHandler.svg
+    :target: https://pypi.python.org/pypi/ElasticECSHandler
+    :alt: Python versions supported
+.. |status| image:: https://img.shields.io/pypi/status/ElasticECSHandler.svg
+    :target: https://pypi.python.org/pypi/ElasticECSHandler
+    :alt: Package stability
+.. |license| image:: https://img.shields.io/pypi/l/ElasticECSHandler.svg
+    :target: https://pypi.python.org/pypi/ElasticECSHandler
+    :alt: License
 .. |ci_status| image:: https://travis-ci.com/IMInterne/python-elasticsearch-ecs-logger.svg?branch=master
     :target: https://travis-ci.com/IMInterne/python-elasticsearch-ecs-logger
     :alt: Continuous Integration Status
