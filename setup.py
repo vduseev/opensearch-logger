@@ -36,11 +36,11 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/Rockin2/python-elasticsearch-ecs-logger',
+    url='https://github.com/IMInterne/python-elasticsearch-ecs-logger',
 
     # Author details
-    author='Olivier Soucy',
-    author_email='osoucy@zoho.com',
+    author='IMInterne',
+    author_email='equipe_interne@innovmetric.com',
 
     # Choose your license
     license='Apache2',
