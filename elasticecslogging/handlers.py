@@ -90,7 +90,7 @@ class ElasticECSHandler(logging.Handler):
                                'msg']
 
     __AGENT_TYPE = 'python-elasticsearch-ecs-logger'
-    __AGENT_VERSION = '1.0.0'
+    __AGENT_VERSION = '1.0.1'
     __ECS_VERSION = "1.4.0"
 
     @staticmethod
