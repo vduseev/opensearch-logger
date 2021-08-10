@@ -1,8 +1,8 @@
 #!/bin/sh
 ES_VERSION="7.14.0"
 
-docker pull docker.elastic.co/elasticsearch/elasticsearch-oss:${ES_VERSION}
-docker network create esnet-oss;
+docker pull docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
+docker network create esnet;
 docker run \
   --rm \
   --publish 9200:9200 \
@@ -10,8 +10,8 @@ docker run \
   --env "path.repo=/tmp" \
   --env "repositories.url.allowed_urls=http://snapshot.*" \
   --env "discovery.type=single-node" \
-  --network=esnet-oss \
-  --name=elasticsearch-oss \
+  --network=esnet \
+  --name=elasticsearch \
   --detach \
-  docker.elastic.co/elasticsearch/elasticsearch-oss:${ES_VERSION}
-docker run --network esnet-oss --rm appropriate/curl --max-time 120 --retry 120 --retry-delay 1 --retry-connrefused --show-error --silent http://elasticsearch-oss:9200
+  docker.elastic.co/elasticsearch/elasticsearch${ES_VERSION}
+docker run --network esnet --rm appropriate/curl --max-time 120 --retry 120 --retry-delay 1 --retry-connrefused --show-error --silent http://elasticsearch:9200
