@@ -90,7 +90,7 @@ class ElasticECSHandler(logging.Handler):
                                'msg']
 
     __AGENT_TYPE = 'python-elasticsearch-ecs-logger'
-    __AGENT_VERSION = '1.0.2'
+    __AGENT_VERSION = '1.0.3'
     __ECS_VERSION = "1.4.0"
 
     @staticmethod
@@ -436,7 +436,7 @@ class ElasticECSHandler(logging.Handler):
 
         if 'exc_info' in log_record_dict:
             exc_info = log_record_dict.pop('exc_info')
-            if exc_info is not None:
+            if exc_info:
                 exc_type, exc_value, traceback_object = exc_info
                 es_record['error'] = {
                     'code': exc_type.__name__,
