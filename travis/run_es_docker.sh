@@ -1,5 +1,5 @@
 #!/bin/sh
-ES_VERSION="7.9.2"
+ES_VERSION="7.14.0"
 
 docker pull docker.elastic.co/elasticsearch/elasticsearch-oss:${ES_VERSION}
 docker network create esnet-oss;
