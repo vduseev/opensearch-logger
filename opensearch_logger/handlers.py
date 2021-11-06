@@ -1,6 +1,3 @@
-""" Elasticsearch logging handler
-"""
-
 import collections
 import copy
 import datetime
@@ -11,86 +8,41 @@ import traceback
 import uuid
 from threading import Timer, Lock
 
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-from elasticsearch import helpers as eshelpers
+from opensearchpy import OpenSearch, RequestsHttpConnection
+from opensearchpy import helpers as eshelpers
 from enum import Enum
 
-try:
-    from requests_kerberos import HTTPKerberosAuth, DISABLED
-    CMR_KERBEROS_SUPPORTED = True
-except ImportError:
-    CMR_KERBEROS_SUPPORTED = False
-
-try:
-    from requests_aws4auth import AWS4Auth
-    AWS4AUTH_SUPPORTED = True
-except ImportError:
-    AWS4AUTH_SUPPORTED = False
-
-from elasticecslogging.serializers import ElasticECSSerializer
+from .version import __version__
 
 
-class ElasticECSHandler(logging.Handler):
-    """ Elasticsearch log handler
+class OpensearchHandler(logging.Handler):
+    """Opensearch logging handler.
 
-    Allows to log to elasticsearch into json format.
+    Allows to log to Opensearch in json format.
     All LogRecord fields are serialised and inserted
     """
 
-    class AuthType(Enum):
-        """ Authentication types supported
-
-        The handler supports
-         - No authentication
-         - Basic authentication
-         - Kerberos or SSO authentication (on windows and linux)
-        """
-        NO_AUTH = 0
-        BASIC_AUTH = 1
-        KERBEROS_AUTH = 2
-        AWS_SIGNED_AUTH = 3
-
-    class IndexNameFrequency(Enum):
-        """ Index type supported
-        the handler supports
-        - Daily indices
-        - Weekly indices
-        - Monthly indices
-        - Year indices
-        - Never expiring indices
-        """
-        DAILY = 0
-        WEEKLY = 1
-        MONTHLY = 2
-        YEARLY = 3
-        NEVER = 4
+    DAILY = 0
+    WEEKLY = 1
+    MONTHLY = 2
+    YEARLY = 3
+    NEVER = 4
 
     # Defaults for the class
-    __DEFAULT_ELASTICSEARCH_HOST = [{'host': 'localhost', 'port': 9200}]
-    __DEFAULT_AUTH_USER = ''
-    __DEFAULT_AUTH_PASSWD = ''
-    __DEFAULT_AWS_ACCESS_KEY = ''
-    __DEFAULT_AWS_SECRET_KEY = ''
-    __DEFAULT_AWS_REGION = ''
-    __DEFAULT_USE_SSL = False
-    __DEFAULT_VERIFY_SSL = True
-    __DEFAULT_AUTH_TYPE = AuthType.NO_AUTH
-    __DEFAULT_INDEX_FREQUENCY = IndexNameFrequency.DAILY
+    __DEFAULT_OPENSEARCH_HOSTS = [{"host": "localhost", "port": 9200}]
+    __DEFAULT_HTTP_AUTH = ("admin", "admin")
+    __DEFAULT_USE_SSL = True
+    __DEFAULT_VERIFY_SSL = False
+    __DEFAULT_INDEX_PREFIX = "opensearch-logger"
+    __DEFAULT_INDEX_ROTATE = DAILY
     __DEFAULT_BUFFER_SIZE = 1000
     __DEFAULT_FLUSH_FREQ_INSEC = 1
-    __DEFAULT_ADDITIONAL_FIELDS = {}
-    __DEFAULT_ADDITIONAL_FIELDS_IN_ENV = {}
-    __DEFAULT_ES_INDEX_NAME = 'python_logger'
-    __DEFAULT_RAISE_ON_EXCEPTION = False
+    __DEFAULT_EXTRA_FIELDS = {}
 
-    __LOGGING_FILTER_FIELDS = ['msecs',
-                               'relativeCreated',
-                               'levelno',
-                               'exc_text',
-                               'msg']
+    __LOGGING_FILTER_FIELDS = ['msecs', 'relativeCreated', 'levelno', 'exc_text', 'msg']
 
-    __AGENT_TYPE = 'python-elasticsearch-ecs-logger'
-    __AGENT_VERSION = '1.0.3'
+    __AGENT_TYPE = 'opensearch-logger'
+    __AGENT_VERSION = __version__
     __ECS_VERSION = "1.4.0"
 
     @staticmethod
@@ -144,8 +96,8 @@ class ElasticECSHandler(logging.Handler):
     }
 
     def __init__(self,
-                 hosts=__DEFAULT_ELASTICSEARCH_HOST,
-                 auth_details=(__DEFAULT_AUTH_USER, __DEFAULT_AUTH_PASSWD),
+                 hosts=__DEFAULT_OPENSEARCH_HOSTS,
+                 auth_details=(__DEFAULT_HTTP_AUTH, __DEFAULT_AUTH_PASSWD),
                  aws_access_key=__DEFAULT_AWS_ACCESS_KEY,
                  aws_secret_key=__DEFAULT_AWS_SECRET_KEY,
                  aws_region=__DEFAULT_AWS_REGION,
@@ -154,9 +106,9 @@ class ElasticECSHandler(logging.Handler):
                  verify_ssl=__DEFAULT_VERIFY_SSL,
                  buffer_size=__DEFAULT_BUFFER_SIZE,
                  flush_frequency_in_sec=__DEFAULT_FLUSH_FREQ_INSEC,
-                 es_index_name=__DEFAULT_ES_INDEX_NAME,
-                 index_name_frequency=__DEFAULT_INDEX_FREQUENCY,
-                 es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
+                 es_index_name=__DEFAULT_INDEX_PREFIX,
+                 index_name_frequency=__DEFAULT_INDEX_ROTATE,
+                 es_additional_fields=__DEFAULT_EXTRA_FIELDS,
                  es_additional_fields_in_env=__DEFAULT_ADDITIONAL_FIELDS_IN_ENV,
                  raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION):
         """ Handler constructor
@@ -210,7 +162,7 @@ class ElasticECSHandler(logging.Handler):
         self.aws_secret_key = aws_secret_key
         self.aws_region = aws_region
         if isinstance(auth_type, str):
-            self.auth_type = ElasticECSHandler.AuthType[auth_type]
+            self.auth_type = OpensearchHandler.AuthType[auth_type]
         else:
             self.auth_type = auth_type
         self.use_ssl = use_ssl
@@ -219,17 +171,17 @@ class ElasticECSHandler(logging.Handler):
         self.flush_frequency_in_sec = flush_frequency_in_sec
         self.es_index_name = es_index_name
         if isinstance(index_name_frequency, str):
-            self.index_name_frequency = ElasticECSHandler.IndexNameFrequency[index_name_frequency]
+            self.index_name_frequency = OpensearchHandler.IndexNameFrequency[index_name_frequency]
         else:
             self.index_name_frequency = index_name_frequency
 
         self.es_additional_fields = copy.deepcopy(es_additional_fields.copy())
-        self.es_additional_fields.setdefault('ecs', {})['version'] = ElasticECSHandler.__ECS_VERSION
+        self.es_additional_fields.setdefault('ecs', {})['version'] = OpensearchHandler.__ECS_VERSION
 
         agent_dict = self.es_additional_fields.setdefault('agent', {})
         agent_dict['ephemeral_id'] = uuid.uuid4()
-        agent_dict['type'] = ElasticECSHandler.__AGENT_TYPE
-        agent_dict['version'] = ElasticECSHandler.__AGENT_VERSION
+        agent_dict['type'] = OpensearchHandler.__AGENT_TYPE
+        agent_dict['version'] = OpensearchHandler.__AGENT_VERSION
 
         host_dict = self.es_additional_fields.setdefault('host', {})
         host_name = socket.gethostname()
@@ -246,7 +198,7 @@ class ElasticECSHandler(logging.Handler):
         self._buffer = []
         self._buffer_lock = Lock()
         self._timer = None
-        self._index_name_func = ElasticECSHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
+        self._index_name_func = OpensearchHandler._INDEX_FREQUENCY_FUNCION_DICT[self.index_name_frequency]
         self.serializer = ElasticECSSerializer()
 
     def __schedule_flush(self):
@@ -256,7 +208,7 @@ class ElasticECSHandler(logging.Handler):
             self._timer.start()
 
     def __get_es_client(self):
-        if self.auth_type == ElasticECSHandler.AuthType.NO_AUTH:
+        if self.auth_type == OpensearchHandler.AuthType.NO_AUTH:
             if self._client is None:
                 self._client = Elasticsearch(hosts=self.hosts,
                                              use_ssl=self.use_ssl,
@@ -265,7 +217,7 @@ class ElasticECSHandler(logging.Handler):
                                              serializer=self.serializer)
             return self._client
 
-        if self.auth_type == ElasticECSHandler.AuthType.BASIC_AUTH:
+        if self.auth_type == OpensearchHandler.AuthType.BASIC_AUTH:
             if self._client is None:
                 return Elasticsearch(hosts=self.hosts,
                                      http_auth=self.auth_details,
@@ -275,7 +227,7 @@ class ElasticECSHandler(logging.Handler):
                                      serializer=self.serializer)
             return self._client
 
-        if self.auth_type == ElasticECSHandler.AuthType.KERBEROS_AUTH:
+        if self.auth_type == OpensearchHandler.AuthType.KERBEROS_AUTH:
             if not CMR_KERBEROS_SUPPORTED:
                 raise EnvironmentError("Kerberos module not available. Please install \"requests-kerberos\"")
             # For kerberos we return a new client each time to make sure the tokens are up to date
@@ -286,7 +238,7 @@ class ElasticECSHandler(logging.Handler):
                                  http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
                                  serializer=self.serializer)
 
-        if self.auth_type == ElasticECSHandler.AuthType.AWS_SIGNED_AUTH:
+        if self.auth_type == OpensearchHandler.AuthType.AWS_SIGNED_AUTH:
             if not AWS4AUTH_SUPPORTED:
                 raise EnvironmentError("AWS4Auth not available. Please install \"requests-aws4auth\"")
             if self._client is None:
@@ -448,7 +400,7 @@ class ElasticECSHandler(logging.Handler):
 
         # Copy unknown attributes of the log_record object.
         for key, value in log_record_dict.items():
-            if key not in ElasticECSHandler.__LOGGING_FILTER_FIELDS:
+            if key not in OpensearchHandler.__LOGGING_FILTER_FIELDS:
                 if key == "args":
                     value = tuple(str(arg) for arg in value)
                 es_record[key] = "" if value is None else value
