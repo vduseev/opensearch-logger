@@ -1,6 +1,6 @@
 import collections
 import copy
-import datetime
+from datetime import datetime, timedelta
 import logging
 import os
 import socket
@@ -15,6 +15,32 @@ from enum import Enum
 from .version import __version__
 
 
+class RotateFrequency(Enum):
+    DAILY = 0
+    WEEKLY = 1
+    MONTHLY = 2
+    YEARLY = 3
+    NEVER = 4
+
+
+__DEFAULT_OPENSEARCH_HOSTS = [{"host": "localhost", "port": 9200}]
+__DEFAULT_HTTP_AUTH = ("admin", "admin")
+__DEFAULT_USE_SSL = True
+__DEFAULT_VERIFY_SSL = False
+__DEFAULT_INDEX_PREFIX = "opensearch-logger"
+__DEFAULT_INDEX_ROTATE = RotateFrequency.DAILY
+__DEFAULT_INDEX_DATE_FORMAT = "%Y-%m-%d"
+__DEFAULT_BUFFER_SIZE = 1000
+__DEFAULT_FLUSH_FREQ_INSEC = 1
+__DEFAULT_EXTRA_FIELDS = {}
+
+__LOGGING_FILTER_FIELDS = ['msecs', 'relativeCreated', 'levelno', 'exc_text', 'msg']
+
+__AGENT_TYPE = 'opensearch-logger'
+__AGENT_VERSION = __version__
+__ECS_VERSION = "1.4.0"
+
+
 class OpensearchHandler(logging.Handler):
     """Opensearch logging handler.
 
@@ -22,70 +48,37 @@ class OpensearchHandler(logging.Handler):
     All LogRecord fields are serialised and inserted
     """
 
-    DAILY = 0
-    WEEKLY = 1
-    MONTHLY = 2
-    YEARLY = 3
-    NEVER = 4
-
-    # Defaults for the class
-    __DEFAULT_OPENSEARCH_HOSTS = [{"host": "localhost", "port": 9200}]
-    __DEFAULT_HTTP_AUTH = ("admin", "admin")
-    __DEFAULT_USE_SSL = True
-    __DEFAULT_VERIFY_SSL = False
-    __DEFAULT_INDEX_PREFIX = "opensearch-logger"
-    __DEFAULT_INDEX_ROTATE = DAILY
-    __DEFAULT_BUFFER_SIZE = 1000
-    __DEFAULT_FLUSH_FREQ_INSEC = 1
-    __DEFAULT_EXTRA_FIELDS = {}
-
-    __LOGGING_FILTER_FIELDS = ['msecs', 'relativeCreated', 'levelno', 'exc_text', 'msg']
-
-    __AGENT_TYPE = 'opensearch-logger'
-    __AGENT_VERSION = __version__
-    __ECS_VERSION = "1.4.0"
+    DAILY = RotateFrequency.DAILY
+    WEEKLY = RotateFrequency.WEEKLY
+    MONTHLY = RotateFrequency.MONTHLY
+    YEARLY = RotateFrequency.YEARLY
+    NEVER = RotateFrequency.NEVER
 
     @staticmethod
-    def _get_daily_index_name(es_index_name):
-        """ Returns elasticearch index name
-        :param: index_name the prefix to be used in the index
-        :return: A srting containing the elasticsearch indexname used which should include the date.
-        """
-        return "{0!s}-{1!s}".format(es_index_name, datetime.datetime.now().strftime('%Y.%m.%d'))
+    def _get_daily_index_name(index_prefix, date_format=__DEFAULT_INDEX_DATE_FORMAT):
+        return f"{index_prefix}-{datetime.now().strftime(date_format)}"
 
     @staticmethod
-    def _get_weekly_index_name(es_index_name):
-        """ Return elasticsearch index name
-        :param: index_name the prefix to be used in the index
-        :return: A srting containing the elasticsearch indexname used which should include the date and specific week
-        """
-        current_date = datetime.datetime.now()
-        start_of_the_week = current_date - datetime.timedelta(days=current_date.weekday())
-        return "{0!s}-{1!s}".format(es_index_name, start_of_the_week.strftime('%Y.%m.%d'))
+    def _get_weekly_index_name(index_prefix, date_format=__DEFAULT_INDEX_DATE_FORMAT):
+        current_date = datetime.now()
+        start_of_the_week = current_date - timedelta(days=current_date.weekday())
+        return f"{index_prefix}-{start_of_the_week.strftime(date_format)}"
 
     @staticmethod
-    def _get_monthly_index_name(es_index_name):
-        """ Return elasticsearch index name
-        :param: index_name the prefix to be used in the index
-        :return: A srting containing the elasticsearch indexname used which should include the date and specific moth
-        """
-        return "{0!s}-{1!s}".format(es_index_name, datetime.datetime.now().strftime('%Y.%m'))
+    def _get_monthly_index_name(index_prefix, date_format=__DEFAULT_INDEX_DATE_FORMAT):
+        current_date = datetime.now()
+        first_date_of_month = datetime(current_date.year, current_date.month, 1)
+        return f"{index_prefix}-{first_date_of_month.strftime(date_format)}"
 
     @staticmethod
-    def _get_yearly_index_name(es_index_name):
-        """ Return elasticsearch index name
-        :param: index_name the prefix to be used in the index
-        :return: A srting containing the elasticsearch indexname used which should include the date and specific year
-        """
-        return "{0!s}-{1!s}".format(es_index_name, datetime.datetime.now().strftime('%Y'))
+    def _get_yearly_index_name(index_prefix, date_format=__DEFAULT_INDEX_DATE_FORMAT):
+        current_date = datetime.now()
+        first_date_of_year = datetime(current_date.year, 1, 1)
+        return f"{index_prefix}-{first_date_of_year.strftime(date_format)}"
 
     @staticmethod
-    def _get_never_index_name(es_index_name):
-        """ Return elasticsearch index name
-        :param: index_name the prefix to be used in the index
-        :return: A srting containing the elasticsearch indexname used which should include just the index name
-        """
-        return "{0!s}".format(es_index_name)
+    def _get_never_index_name(index_prefix):
+        return index_prefix
 
     _INDEX_FREQUENCY_FUNCION_DICT = {
         IndexNameFrequency.DAILY: _get_daily_index_name,

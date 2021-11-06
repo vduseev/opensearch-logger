@@ -53,11 +53,11 @@ The constructor takes the following parameters
 
 | Argument | Default | Description |
 | - | - | - |
-| `index_prefix` | - | A string with the prefix of the elasticsearch index that will be created. |
+| `index_prefix` | `opensearch-logger` | A string with the prefix of the elasticsearch index that will be created. |
 | `index_rotate` | `OpensearchHandler.DAILY` | The period which is used to generate actual index names and rotate them. |
 | `buffer_size` | 1000 | An integer that defines size which when reached on the internal buffer results in a flush to Opensearch. |
 | `flush_frequency` | 1 | A float representing how often and when the buffer will be flushed (in seconds). |
-| `extra_fields` | A nested dictionary with all the additional fields that you would like to add to the logs. |
+| `extra_fields` | | A nested dictionary with all the additional fields that you would like to add to the logs. |
 
 All other keyword arguments are passed directly to the underlying Opensearch python client.
 Full list of connection parameters can be found in [`opensearch-py`] docs. Here are few examples:
