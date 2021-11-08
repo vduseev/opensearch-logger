@@ -33,7 +33,7 @@ opensearch-py = "^1.0"
 python = "^3.8"
 
 [tool.poetry.dev-dependencies]
-black = {version = "^21.0", allow-prereleases = true}
+# black = {version = "^21.0", allow-prereleases = true}
 bump2version = "^1.0"
 # flake8 = "^4.0.1"
 # flake8-blind-except = "^0.2.0"
