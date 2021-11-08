@@ -34,6 +34,7 @@ jobs:
       - name: Pull latest Opensearch image
         run: |
           docker pull opensearchproject/opensearch:latest
+        if: ${{ runner.os == "Linux" }}
 
       - name: Start Opensearch container
         run: |
@@ -45,7 +46,9 @@ jobs:
             -e "bootstrap.memory_lock=true" \
             -p "9200:9200" \
             opensearchproject/opensearch:latest
+        if: ${{ runner.os == "Linux" }}
 
       - name: Stop Opensearch container
         run: |
           docker stop --time 3 opensearch
+        if: ${{ runner.os == "Linux" }}
