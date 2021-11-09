@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opensearch-logger"
-version = "0.1.0"
+version = "1.0.0"
 
 authors = ["vduseev <vagiz@duseev.com>", "IMInterne <equipe_interne@innovmetric.com>"]
 maintainers = ["vduseev <vagiz@duseev.com>"]
