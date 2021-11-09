@@ -69,10 +69,6 @@ jobs:
           python3 -m venv venv
           ./venv/bin/pip install -r requirements.txt
 
-      - name: Test that Opensearch service has started
-        run: |
-          curl -k -XGET "https://admin:admin@localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s"
-
       - name: Run mypy
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
