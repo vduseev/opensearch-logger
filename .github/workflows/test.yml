@@ -9,7 +9,7 @@ jobs:
     name: Verify build
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
         os: [macos-latest, windows-latest]
@@ -29,23 +29,18 @@ jobs:
       - name: Install project dependencies
         run: |
           poetry export -f "requirements.txt" -o "requirements.txt" --dev
-          python3 -m venv .venv
-          source ./.venv/bin/activate
-          pip install -r requirements.txt
+          python3 -m venv venv
+          ./venv/bin/pip install -r requirements.txt
 
       - name: Run non-integration tests
         run: |
-          ./.venv/bin/poetry run pytest --ignore=tests/test_integration.py
-
-      - name: Test build
-        run: |
-          poetry build
+          ./venv/bin/pytest --ignore=tests/test_integration.py
 
   run-tests:
     name: Run tests
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
 
@@ -71,23 +66,31 @@ jobs:
       - name: Install project dependencies
         run: |
           poetry export -f "requirements.txt" -o "requirements.txt" --dev
-          python3 -m venv .venv
-          source ./.venv/bin/activate
-          pip install -r requirements.txt
+          python3 -m venv venv
+          ./venv/bin/pip install -r requirements.txt
 
       - name: Test that Opensearch service has started
         run: |
           curl -k -XGET "https://admin:admin@localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s"
 
-      - name: Run test
+      - name: Run mypy
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
         run: |
-          ./.venv/bin/pytest --cov --cov-report=xml --mypy opensearch_logger --strict-markers
+          ./venv/bin/pytest --mypy opensearch_logger --strict-markers
+
+      - name: Run flake8
+        run: |
+          ./venv/bin/flake8
+
+      - name: Run tests with code coverage
+        env:
+          TEST_OPENSEARCH_HOST: "https://localhost:9200"
+        run: |
+          ./venv/bin/pytest --cov --cov-report=xml
 
       - name: Upload coverage results to Codecov
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           bash <(curl -s https://codecov.io/bash)
-        if: github.ref == 'refs/heads/main'
