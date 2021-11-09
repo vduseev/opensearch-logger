@@ -47,6 +47,7 @@ mypy = "^0.910"
 pytest = "^6.0"
 pytest-cov = "^3.0.0"
 radon = "^5.1.0"
+pytest-mypy = "^0.8.1"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

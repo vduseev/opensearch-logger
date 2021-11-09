@@ -73,7 +73,7 @@ jobs:
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
         run: |
-          ./venv/bin/pytest --mypy opensearch_logger --strict-markers
+          ./venv/bin/mypy opensearch_logger --strict
 
       - name: Run flake8
         run: |

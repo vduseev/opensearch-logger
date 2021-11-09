@@ -1,4 +1,6 @@
 """JSON serializer for Opensearch."""
+from typing import Any
+
 from opensearchpy.serializer import JSONSerializer
 
 
@@ -9,7 +11,7 @@ class OpensearchLoggerSerializer(JSONSerializer):
     Manage the record.exc_info containing an exception type.
     """
 
-    def default(self, data) -> str:
+    def default(self, data: Any) -> Any:
         """Transform unknown types into strings.
 
         Args:

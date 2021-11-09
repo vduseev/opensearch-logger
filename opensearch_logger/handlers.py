@@ -155,7 +155,7 @@ class OpensearchHandler(logging.Handler):
         host_dict['id'] = host_name
         try:
             ip = socket.gethostbyname(socket.gethostname())
-        except socket.gaierror:
+        except socket.gaierror:  # pragma: no cover
             ip = ""
         host_dict['ip'] = ip
 
