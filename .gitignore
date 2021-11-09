@@ -53,6 +53,7 @@ coverage.xml
 .hypothesis/
 htmlcov/
 .pytest_cache
+.mypy_cache
 
 # Translations
 *.mo
@@ -79,3 +80,10 @@ target/
 
 # venv
 /venv
+
+# IDE
+.vscode
+.idea
+
+# Thumbnails
+.DS_Store
