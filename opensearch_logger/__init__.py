@@ -1,1 +1,5 @@
-from .version import __version__
+"""Opensearch Logger package.
+
+Examples:
+    >>> from opensearch_logger import OpensearchHandler
+"""

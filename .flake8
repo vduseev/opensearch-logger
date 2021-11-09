@@ -1,0 +1,15 @@
+[flake8]
+deps =
+    flake8-docstrings
+    flake8-comprehensions
+    flake8-import-order
+    flake8-bugbear
+    flake8-builtins
+    flake8-black
+exclude =
+    tests/*
+ignore =
+  #* E203
+  * D202 # No blank lines allowed after function docstring
+  tests/* ALL
+max-line-length = 120

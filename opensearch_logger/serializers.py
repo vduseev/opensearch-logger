@@ -1,20 +1,19 @@
-""" JSON serializer for Opensearch use
-"""
+"""JSON serializer for Opensearch."""
 from opensearchpy.serializer import JSONSerializer
 
 
 class OpensearchLoggerSerializer(JSONSerializer):
-    """ JSON serializer inherited from the Opensearch JSON serializer
+    """JSON serializer inherited from the Opensearch JSON serializer.
 
     Allows to serialize logs for Opensearch.
     Manage the record.exc_info containing an exception type.
     """
-    def default(self, data):
-        """ Default overrides the Opensearch default method
 
-        Allows to transform unknown types into strings
+    def default(self, data) -> str:
+        """Transform unknown types into strings.
 
-        :params data: The data to serialize before sending it to elastic search
+        Args:
+            data: The data to serialize before sending it to elastic search.
         """
         try:
             return super(OpensearchLoggerSerializer, self).default(data)
