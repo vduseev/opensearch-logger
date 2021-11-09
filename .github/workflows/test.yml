@@ -79,11 +79,11 @@ jobs:
         run: |
           curl -k -XGET "https://admin:admin@localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s"
 
-      - name: Run all tests against real Opensearch
+      - name: Run test
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
         run: |
-          ./.venv/bin/pytest --cov --cov-report=xml --mypy --strict-markers
+          ./.venv/bin/pytest --cov --cov-report=xml --mypy opensearch_logger --strict-markers
 
       - name: Upload coverage results to Codecov
         env:
