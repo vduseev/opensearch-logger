@@ -1,5 +1,7 @@
 Copyright 2021 Vagiz Duseev
 
+Forked from https://github.com/IMInterne/python-elasticsearch-ecs-logger
+
 Copyright 2020 InnovMetric Software
 
 Forked from https://github.com/cmanaha/python-elasticsearch-logger
