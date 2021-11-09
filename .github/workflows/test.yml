@@ -68,8 +68,10 @@ jobs:
 
       - name: Install project dependencies
         run: |
-          poetry env use ${{ matrix.python-version }}
-          poetry install -vvv
+          poetry export -o "requirements.txt"
+          python3.8 -m venv .venv
+          source .venv/bin/activate
+          pip install requirements.txt
 
       - name: Test that Opensearch service has started
         run: |
@@ -79,7 +81,7 @@ jobs:
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
         run: |
-          poetry run pytest --cov --cov-report=xml --mypy --strict-markers
+          pytest --cov --cov-report=xml --mypy --strict-markers
 
       - name: Upload coverage results to Codecov
         env:
