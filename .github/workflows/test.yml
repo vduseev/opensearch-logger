@@ -5,37 +5,37 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  verify-build:
-    name: Verify build
+  # verify-build:
+  #   name: Verify build
 
-    strategy:
-      fail-fast: true
-      matrix:
-        python-version: ["3.8", "3.9", "3.10"]
-        os: [macos-latest, windows-latest]
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       python-version: ["3.8", "3.9", "3.10"]
+  #       os: [macos-latest, windows-latest]
 
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v2
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
 
-      - name: Set up poetry
-        uses: abatilo/actions-poetry@v2.0.0
+  #     - name: Set up poetry
+  #       uses: abatilo/actions-poetry@v2.0.0
 
-      - name: Install project dependencies
-        run: |
-          poetry export -f "requirements.txt" -o "requirements.txt" --dev
-          python3 -m venv venv
+  #     - name: Install project dependencies
+  #       run: |
+  #         poetry export -f "requirements.txt" -o "requirements.txt" --dev
+  #         python3 -m venv venv
 
-          venv/bin/pip install -r requirements.txt
+  #         venv/bin/pip install -r requirements.txt
 
-      - name: Run non-integration tests
-        run: |
-          venv/bin/pytest --ignore=tests/test_integration.py
+  #     - name: Run non-integration tests
+  #       run: |
+  #         venv/bin/pytest --ignore=tests/test_integration.py
 
   run-tests:
     name: Run tests
@@ -91,3 +91,4 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           bash <(curl -s https://codecov.io/bash)
+        if: matrix.python-version == '3.8'
