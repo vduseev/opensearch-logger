@@ -30,12 +30,12 @@ jobs:
         run: |
           poetry export -f "requirements.txt" -o "requirements.txt" --dev
           python3 -m venv .venv
-          source .venv/bin/activate
+          source ./.venv/bin/activate
           pip install -r requirements.txt
 
       - name: Run non-integration tests
         run: |
-          ./venv/bin/poetry run pytest --ignore=tests/test_integration.py
+          ./.venv/bin/poetry run pytest --ignore=tests/test_integration.py
 
       - name: Test build
         run: |
@@ -72,7 +72,7 @@ jobs:
         run: |
           poetry export -f "requirements.txt" -o "requirements.txt" --dev
           python3 -m venv .venv
-          source .venv/bin/activate
+          source ./.venv/bin/activate
           pip install -r requirements.txt
 
       - name: Test that Opensearch service has started
@@ -83,7 +83,7 @@ jobs:
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
         run: |
-          ./venv/bin/pytest --cov --cov-report=xml --mypy --strict-markers
+          ./.venv/bin/pytest --cov --cov-report=xml --mypy --strict-markers
 
       - name: Upload coverage results to Codecov
         env:
