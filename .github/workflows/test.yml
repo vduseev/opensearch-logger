@@ -28,12 +28,14 @@ jobs:
 
       - name: Install project dependencies
         run: |
-          poetry env use ${{ matrix.python-version }}
-          poetry install
+          poetry export -f "requirements.txt" -o "requirements.txt" --dev
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
 
       - name: Run non-integration tests
         run: |
-          poetry run pytest --ignore=tests/test_integration.py
+          ./venv/bin/poetry run pytest --ignore=tests/test_integration.py
 
       - name: Test build
         run: |
@@ -69,7 +71,7 @@ jobs:
       - name: Install project dependencies
         run: |
           poetry export -f "requirements.txt" -o "requirements.txt" --dev
-          python3.8 -m venv .venv
+          python3 -m venv .venv
           source .venv/bin/activate
           pip install -r requirements.txt
 
@@ -81,7 +83,7 @@ jobs:
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
         run: |
-          pytest --cov --cov-report=xml --mypy --strict-markers
+          ./venv/bin/pytest --cov --cov-report=xml --mypy --strict-markers
 
       - name: Upload coverage results to Codecov
         env:
