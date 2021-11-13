@@ -151,6 +151,50 @@ LOGGING = {
 logging.config.dictConfig(LOGGING)
 ```
 
+## Using AWS OpenSearch
+
+Package `requests_aws4auth` is required to connect to the AWS OpenSearch service.
+
+```python
+import boto3
+from opensearch_logger import OpensearchHandler
+from requests_aws4auth import AWS4Auth
+
+host = ""  # The OpenSearch domain endpoint starting with https://
+region = "us-east-1"  # AWS Region
+service = "es"
+creds = boto3.Session().get_credentials()
+
+handler = OpensearchHandler(
+    index_name="my-logs",
+    hosts=[host],
+    http_auth=AWS4Auth(creds.access_key, creds.secret_key, region, service, session_token=creds.token),
+    use_ssl=True,
+    verify_certs=True,
+    ssl_assert_hostname=True,
+    ssl_show_warn=True,
+)
+```
+
+## Using Kerberos Authentication
+
+Pakcage `requests_kerberos` is required to authenticate using Kerberos.
+
+```python
+from opensearch_logger import OpensearchHandler
+from requests_kerberos import HTTPKerberosAuth, DISABLED
+
+handler = OpensearchHandler(
+    index_name="my-logs",
+    hosts=["https://localhost:9200"],
+    http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
+    use_ssl=True,
+    verify_certs=False,
+    ssl_assert_hostname=False,
+    ssl_show_warn=False,
+)
+```
+
 ## Dependencies
 
 This library uses the following packages
