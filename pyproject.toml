@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "opensearch-logger"
-version = "1.1.1"
+version = "1.1.2"
 
 authors = ["vduseev <vagiz@duseev.com>", "IMInterne <equipe_interne@innovmetric.com>"]
 maintainers = ["vduseev <vagiz@duseev.com>"]
@@ -51,4 +51,4 @@ pytest-mypy = "^0.8.1"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core>=1.1.1"]
+requires = ["poetry-core>=1.1.2"]
