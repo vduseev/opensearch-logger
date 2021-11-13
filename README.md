@@ -178,7 +178,7 @@ handler = OpensearchHandler(
 
 ## Using Kerberos Authentication
 
-Pakcage `requests_kerberos` is required to authenticate using Kerberos.
+Package `requests_kerberos` is required to authenticate using Kerberos.
 
 ```python
 from opensearch_logger import OpensearchHandler
