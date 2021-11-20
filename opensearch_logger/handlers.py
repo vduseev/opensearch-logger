@@ -1,4 +1,4 @@
-"""Opensearch logging Handler facility."""
+"""OpenSearch logging Handler facility."""
 
 import copy
 import logging
@@ -13,7 +13,7 @@ from uuid import uuid4
 from opensearchpy import OpenSearch
 from opensearchpy import helpers
 
-from .serializers import OpensearchLoggerSerializer
+from .serializers import OpenSearchLoggerSerializer
 from .version import __version__
 
 
@@ -27,10 +27,10 @@ class RotateFrequency(Enum):
     NEVER = 4
 
 
-class OpensearchHandler(logging.Handler):
-    """Opensearch logging handler.
+class OpenSearchHandler(logging.Handler):
+    """OpenSearch logging handler.
 
-    Allows to log to Opensearch in json format.
+    Allows to log to OpenSearch in json format.
     All LogRecord fields are serialised and inserted
     """
 
@@ -57,10 +57,10 @@ class OpensearchHandler(logging.Handler):
         raise_on_index_exc: bool = False,
         **kwargs: Any,
     ):
-        """Initialize Opensearch logging handler.
+        """Initialize OpenSearch logging handler.
 
         All of the parameters have default values except for connection parameters.
-        Connection parameters are read from kwargs and passed directly to Opensearch
+        Connection parameters are read from kwargs and passed directly to OpenSearch
         client. See opensearch-py documentation for the full list of accepted parameters.
 
         By default, the corresponsing date will be appended to the index_name. Consider
@@ -76,24 +76,24 @@ class OpensearchHandler(logging.Handler):
 
         Args:
             index_name: Base name for the index with logs. Example: "my-logs"
-            index_rotate: Index rotation frequency. Example: OpensearchHandler.DAILY.
+            index_rotate: Index rotation frequency. Example: OpenSearchHandler.DAILY.
             index_date_format: Format of the date appended to index name.
             index_name_sep: Separator between base name and appended date.
             buffer_size: How many messages are accumulated before being flushed.
-            flush_frequency: Seconds to wait before sending messages to Opensearch
+            flush_frequency: Seconds to wait before sending messages to OpenSearch
                 irrespective of whether the buffer is full or not.
             extra_fields: Dict of value that will be appended to every message sent.
-            raise_on_index_exc: Raise exception if indexing to Opensearch fails.
-            kwargs: Connection parameters for Opensearch client.
+            raise_on_index_exc: Raise exception if indexing to OpenSearch fails.
+            kwargs: Connection parameters for OpenSearch client.
 
         Examples:
-            The configuration below is suitable for connection to an Opensearch docker
+            The configuration below is suitable for connection to an OpenSearch docker
             container running locally.
 
             >>> import logging
-            >>> from opensearch_logger import OpensearchHandler
-            >>> handler = OpensearchHandler
-            >>> handler = OpensearchHandler(
+            >>> from opensearch_logger import OpenSearchHandler
+            >>> handler = OpenSearchHandler
+            >>> handler = OpenSearchHandler(
             >>>     index_name="my-logs",
             >>>     hosts=["https://localhost:9200"],
             >>>     http_auth=("admin", "admin"),
@@ -105,16 +105,16 @@ class OpensearchHandler(logging.Handler):
             >>> logger = logging.getLogger(__name__)
             >>> logger.setLevel(logging.INFO)
             >>> logger.addHandler(handler)
-            >>> logger.info("This message will be indexed in Opensearch")
+            >>> logger.info("This message will be indexed in OpenSearch")
             >>> logger.info(f"This one will have extra fields", extra={"topic": "dev})
         """
         logging.Handler.__init__(self)
 
         # Throw an exception if connection arguments for Openserach client are empty
         if not kwargs:
-            raise TypeError("Missing Opensearch connection parameters.")
+            raise TypeError("Missing OpenSearch connection parameters.")
 
-        # Arguments that will be passed to Opensearch client object
+        # Arguments that will be passed to OpenSearch client object
         self.opensearch_kwargs = kwargs
 
         # Bufferization and flush settings
@@ -133,20 +133,20 @@ class OpensearchHandler(logging.Handler):
         if extra_fields is None:
             extra_fields = {}
         self.extra_fields = copy.deepcopy(extra_fields.copy())
-        self.extra_fields.setdefault('ecs', {})['version'] = OpensearchHandler._ECS_VERSION
+        self.extra_fields.setdefault('ecs', {})['version'] = OpenSearchHandler._ECS_VERSION
 
         self._client: Optional[OpenSearch] = None
         self._buffer: List[Dict[str, Any]] = []
         self._buffer_lock: Lock = Lock()
         self._timer: Optional[Timer] = None
-        self.serializer = OpensearchLoggerSerializer()
+        self.serializer = OpenSearchLoggerSerializer()
 
         self.raise_on_index_exc: bool = raise_on_index_exc
 
         agent_dict = self.extra_fields.setdefault('agent', {})
         agent_dict['ephemeral_id'] = uuid4()
-        agent_dict['type'] = OpensearchHandler._AGENT_TYPE
-        agent_dict['version'] = OpensearchHandler._AGENT_VERSION
+        agent_dict['type'] = OpenSearchHandler._AGENT_TYPE
+        agent_dict['version'] = OpenSearchHandler._AGENT_VERSION
 
         host_dict = self.extra_fields.setdefault('host', {})
         host_name = socket.gethostname()
@@ -160,7 +160,7 @@ class OpensearchHandler(logging.Handler):
         host_dict['ip'] = ip
 
     def test_opensearch_connection(self) -> bool:
-        """Returns True if the handler can ping the Opensearch servers.
+        """Returns True if the handler can ping the OpenSearch servers.
 
         Can be used to confirm the setup of a handler has been properly done and confirm
         that things like the authentication are working properly.
@@ -171,7 +171,7 @@ class OpensearchHandler(logging.Handler):
         return self._get_opensearch_client().ping()
 
     def flush(self) -> None:
-        """Flush the buffer into Opensearch."""
+        """Flush the buffer into OpenSearch."""
         if hasattr(self, "_timer") and self._timer is not None and self._timer.is_alive():
             self._timer.cancel()
         self._timer = None
@@ -247,7 +247,7 @@ class OpensearchHandler(logging.Handler):
             record: The original LogRecord.
 
         Returns:
-            Dict[str, Any]: Opensearch ECS compliant document with all the proper meta data fields.
+            Dict[str, Any]: OpenSearch ECS compliant document with all the proper meta data fields.
         """
         log_record_dict = record.__dict__.copy()
         doc = copy.deepcopy(self.extra_fields)
@@ -310,7 +310,7 @@ class OpensearchHandler(logging.Handler):
 
         # Copy unknown attributes of the log_record object.
         for key, value in log_record_dict.items():
-            if key not in OpensearchHandler._LOGGING_FILTER_FIELDS:
+            if key not in OpenSearchHandler._LOGGING_FILTER_FIELDS:
                 if key == "args":
                     value = tuple(str(arg) for arg in value)
                 doc[key] = "" if value is None else value
@@ -345,13 +345,13 @@ class OpensearchHandler(logging.Handler):
 
     @staticmethod
     def _get_opensearch_datetime_str(timestamp: float) -> str:
-        """Return Opensearch utc formatted time for an epoch timestamp.
+        """Return OpenSearch utc formatted time for an epoch timestamp.
 
         Args:
             timestamp (float): Timestamp, including milliseconds.
 
         Returns:
-            str: A string valid for Opensearch record such "2021-11-08T10:04:06.122Z".
+            str: A string valid for OpenSearch record such "2021-11-08T10:04:06.122Z".
         """
         dt = datetime.utcfromtimestamp(timestamp)
         fmt = "%Y-%m-%dT%H:%M:%S"

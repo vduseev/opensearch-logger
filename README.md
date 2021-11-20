@@ -1,4 +1,4 @@
-# Opensearch Logger for Python
+# OpenSearch Logger for Python
 
 <p>
     <a href="https://pypi.org/pypi/opensearch-logger"><img alt="Package version" src="https://img.shields.io/pypi/v/opensearch-logger?logo=python&logoColor=white&color=blue"></a>
@@ -9,16 +9,16 @@
     <a href="https://pypi.org/pypi/opensearch-logger"><img alt="License" src="https://img.shields.io/pypi/l/opensearch-logger"></a>
 </p>
 
-This library provides a standard Python logging handler compatible with [Opensearch][opensearch] suite.
+This library provides a standard Python logging handler compatible with [OpenSearch][opensearch] suite.
 
 The **goals** of this project are
 
-* to provide a **simple** and direct logging from Python to Opensearch without *fluentd*, *logstash* or other middleware;
-* keep it up to date with the growing difference between Opensearch and Elasticsearch projects;
+* to provide a **simple** and direct logging from Python to OpenSearch without *fluentd*, *logstash* or other middleware;
+* keep it up to date with the growing difference between OpenSearch and Elasticsearch projects;
 * keep the library easy to use, robust, and simple.
 
 The library has been open-sourced from an internal project where it has been successfully used in production
-since the release of Opensearch 1.0.
+since the release of OpenSearch 1.0.
 
 Generated log records follow the [Elastic Common Schema (ECS)][ecs] field naming convention.
 For better performance it is recommended to set up a proper mapping for you logging indices but everything will
@@ -36,12 +36,13 @@ Just add the handler to your logger as follows
 
 ```python
 import logging
-from opensearch_logger import OpensearchHandler
+from opensearch_logger import OpenSearchHandler
 
-handler = OpensearchHandler(
+handler = OpenSearchHandler(
     index_name="my-logs",
     hosts=["https://localhost:9200"],
     http_auth=("admin", "admin"),
+    http_compress=True,
     use_ssl=True,
     verify_certs=False,
     ssl_assert_hostname=False,
@@ -53,10 +54,10 @@ logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 ```
 
-To log into Opensearch, simply use the regular logging commands:
+To log into OpenSearch, simply use the regular logging commands:
 
 ```python
-logger.info("This message will be indexed in Opensearch")
+logger.info("This message will be indexed in OpenSearch")
 
 # Report extra fields
 start_time = time.perf_counter()
@@ -68,10 +69,10 @@ logger.info(f"Database operation took {elapsed_time:.3f} seconds", extra={"elaps
 
 ## Configuration
 
-The `OpensearchHandler` constructor several parameters from the first table below to control name of the index,
+The `OpenSearchHandler` constructor several parameters from the first table below to control name of the index,
 buffering, and some general behavior. None of this parameters are mandatory.
 
-All other keyword arguments are passed directly to the underlying Opensearch python client.
+All other keyword arguments are passed directly to the underlying OpenSearch python client.
 Full list of connection parameters can be found in [`opensearch-py`][opensearch-py] docs.
 At least one connection parameter **must** be provided, otherwise a `TypeError` will be thrown.
 
@@ -79,23 +80,23 @@ At least one connection parameter **must** be provided, otherwise a `TypeError` 
 
 | Parameter | Default | Description |
 | - | - | - |
-| `index_name` | `"python-logs"` | Base name of the Opensearch index name that will be created. |
-| `index_rotate` | `DAILY` | Frequency that controls what date is appended to index name during its creation. `OpensearchHandler.DAILY`. |
+| `index_name` | `"python-logs"` | Base name of the OpenSearch index name that will be created. |
+| `index_rotate` | `DAILY` | Frequency that controls what date is appended to index name during its creation. `OpenSearchHandler.DAILY`. |
 | `index_date_format` | `"%Y.%m.%d"` | Format of the date that gets appended to the base index name. |
 | `index_name_sep` | `"-"` | Separator string between `index_name` and the date, appended to the index name. |
-| `buffer_size` | `1000` | Number of log records which when reached on the internal buffer results in a flush to Opensearch. |
+| `buffer_size` | `1000` | Number of log records which when reached on the internal buffer results in a flush to OpenSearch. |
 | `flush_frequency` | `1` | Float representing how often the buffer will be flushed (in seconds). |
 | `extra_fields` | `{}` | Nested dictionary with all the additional fields that you would like to add to all logs. |
-| `raise_on_index_exc` | `False` | Raise exception if indexing to Opensearch fails. |
+| `raise_on_index_exc` | `False` | Raise exception if indexing to OpenSearch fails. |
 
 ## Connection parameters
 
-Here are few examples of the connection parameters supported by the Opensearch client.
+Here are few examples of the connection parameters supported by the OpenSearch client.
 
 | Parameter | Example | Description |
 | - | - | - |
 | `hosts` | `["https://localhost:9200"]` | The list of hosts to connect to. Multiple hosts are allowed. |
-| `http_auth` | `("admin", "admin")` | Username and password to authenticate against the Opensearch servers. |
+| `http_auth` | `("admin", "admin")` | Username and password to authenticate against the OpenSearch servers. |
 | `http_compress` | `True` | Enables gzip compression for request bodies. |
 | `use_ssl` | `True` | Whether communications should be SSL encrypted. |
 | `verify_certs` | `False` | Whether the SSL certificates are validated or not. |
@@ -106,7 +107,7 @@ Here are few examples of the connection parameters supported by the Opensearch c
 ## Configuring using logging.config or in Django
 
 As most other log handlers, `opensearch-logger` support configuration via `logging.config` facility.
-Just specify the `opensearch_logger.OpensearchHandler` as one of the handlers and provide parameters to it.
+Just specify the `opensearch_logger.OpenSearchHandler` as one of the handlers and provide parameters to it.
 
 Full guide on tweaking `logging.config` can be found in the [official python documentation][logging-config].
 
@@ -126,12 +127,16 @@ LOGGING = {
         },
         "opensearch": {
             "level": "INFO",
-            "class": "opensearch_logger.OpensearchHandler",
-            "hosts": [{"host": "localhost", "port": 9200}],
+            "class": "opensearch_logger.OpenSearchHandler",
             "index_name": "my-logs",
             "extra_fields": {"App": "test", "Environment": "dev"},
+            "hosts": [{"host": "localhost", "port": 9200}],
+            "http_auth": ("admin", "admin"),
+            "http_compress": True,
             "use_ssl": True,
             "verify_certs": False,
+            "ssl_assert_hostname": False,
+            "ssl_show_warn": False,
         },
     },
     "loggers": {
@@ -157,7 +162,7 @@ Package `requests_aws4auth` is required to connect to the AWS OpenSearch service
 
 ```python
 import boto3
-from opensearch_logger import OpensearchHandler
+from opensearch_logger import OpenSearchHandler
 from requests_aws4auth import AWS4Auth
 
 host = ""  # The OpenSearch domain endpoint starting with https://
@@ -165,7 +170,7 @@ region = "us-east-1"  # AWS Region
 service = "es"
 creds = boto3.Session().get_credentials()
 
-handler = OpensearchHandler(
+handler = OpenSearchHandler(
     index_name="my-logs",
     hosts=[host],
     http_auth=AWS4Auth(creds.access_key, creds.secret_key, region, service, session_token=creds.token),
@@ -181,10 +186,10 @@ handler = OpensearchHandler(
 Package `requests_kerberos` is required to authenticate using Kerberos.
 
 ```python
-from opensearch_logger import OpensearchHandler
+from opensearch_logger import OpenSearchHandler
 from requests_kerberos import HTTPKerberosAuth, DISABLED
 
-handler = OpensearchHandler(
+handler = OpenSearchHandler(
     index_name="my-logs",
     hosts=["https://localhost:9200"],
     http_auth=HTTPKerberosAuth(mutual_authentication=DISABLED),
@@ -204,7 +209,7 @@ This library uses the following packages
 ## Building from source & Developing
 
 This package uses [`pyenv`][pyenv] (optional) and [Poetry][poetry] for development purposes.
-It also uses Docker to run Opensearch container for integration testing during development.
+It also uses Docker to run OpenSearch container for integration testing during development.
 
 1. Clone the repo.
 1. Instruct poetry to use a proper Python version and install dependencies.
@@ -217,14 +222,14 @@ It also uses Docker to run Opensearch container for integration testing during d
 1. Run tests
 
    **WARNING**: You need opensearch running on `https://localhost:9200` to run the tests.
-   Part of the tests verifies that correct number of logs actually gets into Opensearch.
+   Part of the tests verifies that correct number of logs actually gets into OpenSearch.
    Alternatively, you can specify the `TEST_OPENSEARCH_HOST` variable and set it to a different value pointing
-   to the running Opensearch server.
+   to the running OpenSearch server.
 
-   There are not many tests, but they run with **5 seconds cooldown each** to allow Opensearch to process the
+   There are not many tests, but they run with **5 seconds cooldown each** to allow OpenSearch to process the
    newly sent log records properly and verify their count.
 
-   Small helper scripts are available in the `tests/` directory to start and stop Opensearch using Docker.
+   Small helper scripts are available in the `tests/` directory to start and stop OpenSearch using Docker.
 
    ```shell
    # Give it 5-10 seconds to initialize before running tests
@@ -242,11 +247,11 @@ It also uses Docker to run Opensearch container for integration testing during d
    # Run flake8 to make sure code style is correct
    poetry run flake8
 
-   # Turn off Opensearch
+   # Turn off OpenSearch
    tests/stop-opensearch-docker.sh
    ```
 
-   Before turning the Opensearch container off, it is possible to check that the records are actually there.
+   Before turning the OpenSearch container off, it is possible to check that the records are actually there.
 
    ```shell
    # Verify index is in place and has required number of records
@@ -276,11 +281,11 @@ and released to PyPI.
 This is a fork of [Python Elasticsearch ECS Log handler][python-elasticsearch-ecs-logger] project
 which was in turn forked from [Python Elasticsearch Logger][python-elasticsearch-logger] project.
 While original is perfectly suitable for logging to Elasticsearch, due to the split between
-Opensearch and Elasticsearch it makes sense to make a fork entirely tailored to work with Opensearch
+OpenSearch and Elasticsearch it makes sense to make a fork entirely tailored to work with OpenSearch
 and based on the official [`opensearch-py`][opensearch-py] Python library.
 
 The API between `python-elasticsearch-ecs-logger` and this project has slightly changed for better
-compatibility with Opensearch and for the purposes of simplification.
+compatibility with OpenSearch and for the purposes of simplification.
 
 ## License
 

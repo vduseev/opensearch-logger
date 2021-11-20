@@ -3,9 +3,8 @@ import logging
 import os
 
 import pytest
-from opensearch_logger import handlers
 
-from opensearch_logger.handlers import OpensearchHandler
+from opensearch_logger import OpenSearchHandler
 
 
 @pytest.fixture(scope="module")
@@ -23,17 +22,17 @@ def test_date():
 
 def test_missing_opensearch_parameters():
     with pytest.raises(TypeError):
-        OpensearchHandler(index_name="test-opensearch-logger")
+        OpenSearchHandler(index_name="test-opensearch-logger")
 
     with pytest.raises(TypeError):
-        OpensearchHandler()
+        OpenSearchHandler()
 
-    handler = OpensearchHandler(hosts=["https://localhost:9200"])
+    handler = OpenSearchHandler(hosts=["https://localhost:9200"])
     assert handler.test_opensearch_connection() is False
 
 
 def test_raise_on_index_exc():
-    handler = OpensearchHandler(
+    handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         raise_on_index_exc=True,
         hosts=["http://nothere:30129"],
@@ -48,7 +47,7 @@ def test_raise_on_index_exc():
 
 
 def test_not_raise_on_index_exc():
-    handler = OpensearchHandler(
+    handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         hosts=["http://nothere:30129"],
     )
@@ -64,7 +63,7 @@ def test_not_raise_on_index_exc():
 
 
 def test_daily_index_name(test_date):
-    handler = OpensearchHandler(
+    handler = OpenSearchHandler(
         index_name="i",
         index_date_format="%Y-%m-%d",
         hosts=[],
@@ -73,7 +72,7 @@ def test_daily_index_name(test_date):
 
 
 def test_weekly_index_name(test_date):
-    handler = OpensearchHandler(
+    handler = OpenSearchHandler(
         index_name="i",
         hosts=[],
     )
@@ -83,7 +82,7 @@ def test_weekly_index_name(test_date):
 
 
 def test_monthly_index_name(test_date):
-    handler = OpensearchHandler(
+    handler = OpenSearchHandler(
         index_name="name",
         index_date_format="%Y_%m_%d",
         index_name_sep="_",
@@ -93,7 +92,7 @@ def test_monthly_index_name(test_date):
 
 
 def test_yearly_index_name(test_date):
-    handler = OpensearchHandler(
+    handler = OpenSearchHandler(
         index_name="index",
         index_date_format="%YZ",
         index_name_sep="_",
@@ -103,7 +102,7 @@ def test_yearly_index_name(test_date):
 
 
 def test_never_index_name(test_date):
-    handler = OpensearchHandler(
+    handler = OpenSearchHandler(
         index_name="index",
         index_date_format="%Y-%m-%d",
         hosts=[],

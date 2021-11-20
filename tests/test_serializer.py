@@ -5,7 +5,7 @@ import decimal
 
 import pytest
 
-from opensearch_logger.serializers import OpensearchLoggerSerializer
+from opensearch_logger.serializers import OpenSearchLoggerSerializer
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def formatter():
 
 def test_dumps_classic_log(logger: logging.Logger, formatter: logging.Formatter):
     """Test classic log serialization."""
-    serializer = OpensearchLoggerSerializer()
+    serializer = OpenSearchLoggerSerializer()
     record = logger.makeRecord(
         name=logger.name,
         level=logging.INFO,
@@ -40,7 +40,7 @@ def test_dumps_classic_log(logger: logging.Logger, formatter: logging.Formatter)
 
 def test_dumps_exception_log(logger: logging.Logger, formatter: logging.Formatter):
     """Test the exception log serialization with the exc_info field."""
-    serializer = OpensearchLoggerSerializer()
+    serializer = OpenSearchLoggerSerializer()
     try:
         _ = 1 / 0
     except ZeroDivisionError:
@@ -63,7 +63,7 @@ def test_dumps_exception_log(logger: logging.Logger, formatter: logging.Formatte
 
 def test_dumps_log_with_extras_and_args(logger: logging.Logger, formatter: logging.Formatter):
     """Test log serialization with arguments and extras."""
-    serializer = OpensearchLoggerSerializer()
+    serializer = OpenSearchLoggerSerializer()
     record = logger.makeRecord(
         name=logger.name,
         level=logging.ERROR,
