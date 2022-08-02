@@ -163,6 +163,7 @@ Package `requests_aws4auth` is required to connect to the AWS OpenSearch service
 import boto3
 from opensearch_logger import OpenSearchHandler
 from requests_aws4auth import AWS4Auth
+from opensearchpy import RequestsHttpConnection
 
 host = ""  # The OpenSearch domain endpoint starting with https://
 region = "us-east-1"  # AWS Region
@@ -177,6 +178,7 @@ handler = OpenSearchHandler(
     verify_certs=True,
     ssl_assert_hostname=True,
     ssl_show_warn=True,
+    connection_class=RequestsHttpConnection,
 )
 ```
 
