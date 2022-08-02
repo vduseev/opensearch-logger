@@ -1,12 +1,11 @@
 # OpenSearch Logger for Python
 
 <p>
+    <a href="https://github.com/vduseev/opensearch-logger/actions/workflows/test.yml"><img alt="Tests (main branch)" src="https://img.shields.io/github/workflow/status/vduseev/opensearch-logger/Test/main?logo=github"></a>
+    <a href="https://codecov.io/gh/vduseev/opensearch-logger"><img alt="Code coverage" src="https://img.shields.io/codecov/c/github/vduseev/opensearch-logger?logo=codecov&logoColor=white"></a>
     <a href="https://pypi.org/pypi/opensearch-logger"><img alt="Package version" src="https://img.shields.io/pypi/v/opensearch-logger?logo=python&logoColor=white&color=blue"></a>
     <a href="https://pypi.org/pypi/opensearch-logger"><img alt="Supported python versions" src="https://img.shields.io/pypi/pyversions/opensearch-logger?logo=python&logoColor=white"></a>
-    <a href="https://pypi.org/pypi/opensearch-logger"><img alt="Package stability" src="https://img.shields.io/pypi/status/opensearch-logger?logo=python&logoColor=white&color=blue"></a>
-    <a href="https://codecov.io/gh/vduseev/opensearch-logger"><img alt="Code coverage" src="https://img.shields.io/codecov/c/github/vduseev/opensearch-logger?logo=codecov&logoColor=white&color=white"></a>
-    <a href="https://github.com/vduseev/opensearch-logger/actions/workflows/test.yml"><img alt="Tests (main branch)" src="https://img.shields.io/github/workflow/status/vduseev/opensearch-logger/Test/main?logo=github"></a>
-    <a href="https://pypi.org/pypi/opensearch-logger"><img alt="License" src="https://img.shields.io/pypi/l/opensearch-logger"></a>
+    <a href=""><img alt="PyPI Downloads" src="https://img.shields.io/pypi/dm/opensearch-logger?logo=python&logoColor=white&color=blue"></a>
 </p>
 
 This library provides a standard Python logging handler compatible with [OpenSearch][opensearch] suite.
