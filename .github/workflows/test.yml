@@ -24,7 +24,7 @@ jobs:
       - name: Export project dependencies
         run: poetry export -f "requirements.txt" -o "requirements.txt" --dev --without-hashes
 
-      - name: Save exported requirements.txt
+      - name: Save exported requirements.txt artifact
         uses: actions/upload-artifact@v3
         with:
           name: requirements
@@ -58,7 +58,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Download exported requirements.txt
+      - name: Download exported requirements.txt artifact
         uses: actions/download-artifact@v3
         with:
           name: requirements
@@ -85,19 +85,19 @@ jobs:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
         run: python -m pytest -x --cov --cov-report=xml
 
-      - name: Save coverage results
+      - name: Save coverage results artifact
         uses: actions/upload-artifact@v3
         with:
           name: coverage
           path: coverage.xml
-        if: matrix.python-version == '3.8' && matrix.os == 'ubuntu-latest'
+        if: matrix.python-version == '3.8'
 
   measure-coverage:
     name: Measure coverage
     needs: run-tests
     runs-on: ubuntu-latest
     steps:
-      - name: Download coverage results
+      - name: Download coverage results artifact
         uses: actions/download-artifact@v3
         with:
           name: coverage
