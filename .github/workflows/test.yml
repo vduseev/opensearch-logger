@@ -38,7 +38,8 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Service containers are only available on ubuntu-latest
+        # os: [ubuntu-latest, macos-latest, windows-latest]
 
     services:
       opensearch:
@@ -47,7 +48,8 @@ jobs:
         ports:
           - "9200:9200"
 
-    runs-on: ${{ matrix.os }}
+    # runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
