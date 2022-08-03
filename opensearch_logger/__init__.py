@@ -1,4 +1,4 @@
-"""OpenSearch Logger package
+"""OpenSearch Logger package.
 
 Examples:
     >>> from opensearch_logger import OpenSearchHandler

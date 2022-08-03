@@ -72,6 +72,14 @@ jobs:
             sleep 1
           done
 
+      - name: Run mypy
+        env:
+          TEST_OPENSEARCH_HOST: "https://localhost:9200"
+        run: python -m mypy opensearch_logger --strict
+
+      - name: Run flake8
+        run: python -m flake8 opensearch_logger
+
       - name: Run tests
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
@@ -83,14 +91,6 @@ jobs:
           name: coverage
           path: coverage.xml
         if: matrix.python-version == '3.8' && matrix.os == 'ubuntu-latest'
-
-      - name: Run mypy
-        env:
-          TEST_OPENSEARCH_HOST: "https://localhost:9200"
-        run: python -m mypy opensearch_logger --strict
-
-      - name: Run flake8
-        run: python -m flake8 opensearch_logger
 
   measure-coverage:
     name: Measure coverage
