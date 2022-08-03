@@ -69,7 +69,7 @@ jobs:
       - name: Run tests
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
-        run: python -m pytest --cov --cov-report=xml
+        run: python -m pytest -x --cov --cov-report=xml
 
       - name: Save coverage results
         uses: actions/upload-artifact@v3
