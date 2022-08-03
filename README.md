@@ -288,6 +288,13 @@ and based on the official [`opensearch-py`][opensearch-py] Python library.
 The API between `python-elasticsearch-ecs-logger` and this project has slightly changed for better
 compatibility with OpenSearch and for the purposes of simplification.
 
+## Featured on
+
+The `opensearch-logger` project is featured on the official
+[OpenSearch Community Projects page][community-projects] 🚀.
+
+![OpenSearch Community Featured Project](docs/images/community-projects.png)
+
 ## License
 
 Distributed under the terms of [Apache 2.0][apache-2.0] license, opensearch-logger is free and open source software.
@@ -303,3 +310,4 @@ Distributed under the terms of [Apache 2.0][apache-2.0] license, opensearch-logg
 [apache-2.0]: https://github.com/vduseev/opensearch-logger/blob/main/LICENSE.md
 [python-elasticsearch-ecs-logger]: https://github.com/IMInterne/python-elasticsearch-ecs-logger
 [python-elasticsearch-logger]: https://github.com/cmanaha/python-elasticsearch-logger
+[community-projects]: https://opensearch.org/community_projects
