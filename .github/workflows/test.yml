@@ -1,7 +1,11 @@
 name: Test
 on:
-  pull_request: {}
-  push: {}
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+  push:
+    paths-ignore:
+      - '**/*.md'
   workflow_dispatch: {}
   schedule:
     - cron: "0 1 * * *"
