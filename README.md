@@ -101,7 +101,7 @@ Here are few examples of the connection parameters supported by the OpenSearch c
 | `verify_certs` | `False` | Whether the SSL certificates are validated or not. |
 | `ssl_assert_hostname` | `False` | Verify authenticity of host for encrypted connections. |
 | `ssl_show_warn` | `False` | Enable warning for SSL connections. |
-| `ca_carts` | `"/var/lib/root-ca.pem"` | CA bundle path for using intermediate CAs with your root CA. |
+| `ca_certs` | `"/var/lib/root-ca.pem"` | CA bundle path for using intermediate CAs with your root CA. |
 
 ## Configuring using logging.config or in Django
 
@@ -275,7 +275,7 @@ Please create a GitHub issue and a Pull Request that references that issue as we
 Your Pull Request will be automatically tested using GitHub actions.
 
 After your pull request will be accepted, it will be merged and the version of the library will be bumped
-and released to PyPI.
+and released to PyPI by project maintainers.
 
 ## History
 
