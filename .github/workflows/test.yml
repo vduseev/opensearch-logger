@@ -3,47 +3,42 @@ on:
   pull_request: {}
   push: {}
   workflow_dispatch: {}
+  schedule:
+    - cron: "0 1 * * *"
 
 jobs:
-  # verify-build:
-  #   name: Verify build
+  export-requirements:
+    name: Export requirements
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #   strategy:
-  #     fail-fast: true
-  #     matrix:
-  #       python-version: ["3.8", "3.9", "3.10"]
-  #       os: [macos-latest, windows-latest]
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #     - uses: actions/checkout@v2
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2.0.0
 
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: ${{ matrix.python-version }}
+      - name: Export project dependencies
+        run: poetry export -f "requirements.txt" -o "requirements.txt" --dev --without-hashes
 
-  #     - name: Set up poetry
-  #       uses: abatilo/actions-poetry@v2.0.0
-
-  #     - name: Install project dependencies
-  #       run: |
-  #         poetry export -f "requirements.txt" -o "requirements.txt" --dev
-  #         python3 -m venv venv
-
-  #         venv/bin/pip install -r requirements.txt
-
-  #     - name: Run non-integration tests
-  #       run: |
-  #         venv/bin/pytest --ignore=tests/test_integration.py
+      - name: Save exported requirements.txt
+        uses: actions/upload-artifact@v3
+        with:
+          name: requirements
+          path: requirements.txt
 
   run-tests:
     name: Run tests
+    needs: export-requirements
 
     strategy:
       fail-fast: true
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     services:
       opensearch:
@@ -52,43 +47,54 @@ jobs:
         ports:
           - "9200:9200"
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set up poetry
-        uses: abatilo/actions-poetry@v2.0.0
+      - name: Download exported requirements.txt
+        uses: actions/download-artifact@v3
+        with:
+          name: requirements
 
-      - name: Install project dependencies
-        run: |
-          poetry export -f "requirements.txt" -o "requirements.txt" --dev --without-hashes
-          python3 -m venv venv
-          ./venv/bin/pip install -r requirements.txt
+      - name: Install package dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        env:
+          TEST_OPENSEARCH_HOST: "https://localhost:9200"
+        run: python -m pytest --cov --cov-report=xml
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: coverage.xml
+        if: matrix.python-version == '3.8' && matrix.os == 'ubuntu-latest'
 
       - name: Run mypy
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
-        run: |
-          ./venv/bin/mypy opensearch_logger --strict
+        run: python -m mypy opensearch_logger --strict
 
       - name: Run flake8
-        run: |
-          ./venv/bin/flake8 opensearch_logger
+        run: python -m flake8 opensearch_logger
 
-      - name: Run tests with code coverage
-        env:
-          TEST_OPENSEARCH_HOST: "https://localhost:9200"
-        run: |
-          ./venv/bin/pytest --cov --cov-report=xml
+  measure-coverage:
+    name: Measure coverage
+    needs: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download coverage results
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage
 
       - name: Upload coverage results to Codecov
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: |
-          bash <(curl -s https://codecov.io/bash)
-        if: matrix.python-version == '3.8'
+        run: bash <(curl -s https://codecov.io/bash)
