@@ -20,8 +20,9 @@ The library has been open-sourced from an internal project where it has been suc
 since the release of OpenSearch 1.0.
 
 Generated log records follow the [Elastic Common Schema (ECS)][ecs] field naming convention.
-For better performance it is recommended to set up a proper mapping for you logging indices but everything will
-work even without it. You can find a ready to use [compatible JSON mapping][ecs-mapping] in the repository.
+For better performance, it is recommended to set up a proper mapping for your logging indices.
+However, everything will work fine without it.
+A ready to use [compatible JSON mapping][ecs-mapping] can be found [in the repository][ecs-mapping].
 
 ## Installation
 
@@ -31,7 +32,7 @@ pip install opensearch-logger
 
 ## Usage
 
-Just add the handler to your logger as follows
+Just add the OpenSearch handler to your Python logger
 
 ```python
 import logging
@@ -53,25 +54,34 @@ logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 ```
 
-To log into OpenSearch, simply use the regular logging commands:
+To send logs to OpenSearch simply use the same regular logging commands
 
 ```python
+# Logging a simple text message
 logger.info("This message will be indexed in OpenSearch")
 
-# Report extra fields
+# Now, as an example, let's measure how long some operation takes
 start_time = time.perf_counter()
+
 heavy_database_operation()
+
 elapsed_time = time.perf_counter() - start_time
 
-logger.info(f"Database operation took {elapsed_time:.3f} seconds", extra={"elapsed_time": elapsed_time})
+# Let's send elapsed_time as an exatra parameter to the log record below.
+# This will make the `elapsed_time` field searchable and aggregatable.
+logger.info(
+    f"Database operation took {elapsed_time:.3f} seconds",
+    extra={"elapsed_time": elapsed_time},
+)
 ```
 
 ## Configuration
 
-The `OpenSearchHandler` constructor several parameters from the first table below to control name of the index,
-buffering, and some general behavior. None of this parameters are mandatory.
+The `OpenSearchHandler` constructor takes several arguments described in the table below.
+These parameters specify the name of the index, buffering settings, and some general behavior.
+None of this parameters are mandatory.
 
-All other keyword arguments are passed directly to the underlying OpenSearch python client.
+All other keyword arguments are passed directly "as is" to the underlying `OpenSearch` python client.
 Full list of connection parameters can be found in [`opensearch-py`][opensearch-py] docs.
 At least one connection parameter **must** be provided, otherwise a `TypeError` will be thrown.
 
@@ -85,12 +95,13 @@ At least one connection parameter **must** be provided, otherwise a `TypeError` 
 | `index_name_sep` | `"-"` | Separator string between `index_name` and the date, appended to the index name. |
 | `buffer_size` | `1000` | Number of log records which when reached on the internal buffer results in a flush to OpenSearch. |
 | `flush_frequency` | `1` | Float representing how often the buffer will be flushed (in seconds). |
-| `extra_fields` | `{}` | Nested dictionary with all the additional fields that you would like to add to all logs. |
-| `raise_on_index_exc` | `False` | Raise exception if indexing to OpenSearch fails. |
+| `extra_fields` | `{}` | Nested dictionary with extra fields that will be added to every log record. |
+| `raise_on_index_exc` | `False` | Raise exception if indexing the log record in OpenSearch fails. |
 
 ## Connection parameters
 
-Here are few examples of the connection parameters supported by the OpenSearch client.
+Here are a few examples of the connection parameters supported by the OpenSearch client.
+For more details please check the [`opensearch-py`][opensearch-py] documentation.
 
 | Parameter | Example | Description |
 | - | - | - |
@@ -103,10 +114,10 @@ Here are few examples of the connection parameters supported by the OpenSearch c
 | `ssl_show_warn` | `False` | Enable warning for SSL connections. |
 | `ca_certs` | `"/var/lib/root-ca.pem"` | CA bundle path for using intermediate CAs with your root CA. |
 
-## Configuring using logging.config or in Django
+## Configuration with logging.config or in Django
 
-As most other log handlers, `opensearch-logger` support configuration via `logging.config` facility.
-Just specify the `opensearch_logger.OpenSearchHandler` as one of the handlers and provide parameters to it.
+Similarly to other log handlers, `opensearch-logger` supports configuration via `logging.config` facility.
+Just specify the `opensearch_logger.OpenSearchHandler` as one of the handlers and provide it with parameters.
 
 Full guide on tweaking `logging.config` can be found in the [official python documentation][logging-config].
 
