@@ -14,7 +14,7 @@ on:
 jobs:
   export-requirements:
     name: Export requirements
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
 
@@ -23,17 +23,21 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Set up Poetry
-        uses: abatilo/actions-poetry@v2.0.0
+      - name: Install pip-tools
+        run: pip install pip-tools
 
       - name: Export project dependencies
-        run: poetry export -f "requirements.txt" -o "requirements.txt" --dev --without-hashes
+        run: |
+          pip-compile pyproject.toml
+          pip-compile --extra dev -o dev-requirements.txt pyproject.toml
 
-      - name: Save exported requirements.txt artifact
+      - name: Save resolved dependencies as artifacts
         uses: actions/upload-artifact@v3
         with:
           name: requirements
-          path: requirements.txt
+          path: |
+            requirements.txt
+            dev-requirements.txt
 
   run-tests:
     name: Run tests
@@ -43,7 +47,9 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
-        # Service containers are only available on ubuntu-latest
+        # Service containers are only available on Linux
+        # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idservices
+        os: [ubuntu-20.04]
         # os: [ubuntu-latest, macos-latest, windows-latest]
 
     services:
@@ -53,8 +59,7 @@ jobs:
         ports:
           - "9200:9200"
 
-    # runs-on: ${{ matrix.os }}
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
 
@@ -69,7 +74,7 @@ jobs:
           name: requirements
 
       - name: Install package dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt -r dev-requirements.txt
 
       - name: Wait until OpenSearch boots up
         run: |
@@ -88,17 +93,17 @@ jobs:
       - name: Run tests
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
-        run: python -m pytest -x --cov --cov-report=xml
+        run: python -m pytest -x --cov --cov-report=xml --cov-config=pyproject.toml
 
       - name: Save coverage results artifact
         uses: actions/upload-artifact@v3
         with:
           name: coverage
           path: coverage.xml
-        if: matrix.python-version == '3.10'
+        if: matrix.python-version == '3.11'
 
   measure-coverage:
-    name: Measure coverage
+    name: Report coverage
     needs: run-tests
     runs-on: ubuntu-latest
     steps:

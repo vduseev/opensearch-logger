@@ -1,13 +1,25 @@
-[tool.poetry]
+[build-system]
+requires = [
+    "flit_core >=3.2,<4",
+    # "setuptools",
+    # "wheel",
+]
+build-backend = "flit_core.buildapi"
+# build-backend = "setuptools.build_meta"
+
+[project]
 name = "opensearch-logger"
 version = "1.2.1"
-
+description = "OpenSearch logging handler"
+readme = "README.md"
+requires-python = ">=3.6"
+license = { file = "LICENSE.md" }
+keywords = ["opensearch", "logging", "handler", "logger"]
 authors = [
-  "vduseev <vagiz@duseev.com>",
-  "IMInterne <equipe_interne@innovmetric.com>",
+  {name = "vduseev", email = "vagiz@duseev.com"},
+  {name = "IMInterne", email = "equipe_interne@innovmetric.com"},
 ]
-maintainers = ["vduseev <vagiz@duseev.com>"]
-
+maintainers = [{name = "vduseev", email = "vagiz@duseev.com"}]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
@@ -17,38 +29,52 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3.6",
 ]
-description = "OpenSearch logging handler"
-keywords = ["opensearch", "logging", "handler", "logger"]
+dependencies = ["opensearch-py"]
 
-documentation = "https://github.com/vduseev/python-opensearch-logger"
-homepage = "https://github.com/vduseev/python-opensearch-logger"
-repository = "https://github.com/vduseev/python-opensearch-logger"
+[project.urls]
+documentation = "https://github.com/vduseev/opensearch-logger"
+homepage = "https://github.com/vduseev/opensearch-logger"
+repository = "https://github.com/vduseev/opensearch-logger"
 
-license = "Apache-2.0"
-readme = "README.md"
+[project.optional-dependencies]
+dev = [
+  "bump2version",
+  "flake8",
+  "flake8-blind-except",
+  "flake8-bugbear",
+  "flake8-comprehensions",
+  "flake8-docstrings",
+  "flake8-import-order",
+  "flake8-polyfill",
+  "flit",
+  "mypy",
+  "pytest",
+  "pytest-cov",
+  "radon",
+  "pytest-mypy",
+]
 
-packages = [{ include = "opensearch_logger" }]
+[tool.black]
+line-length = 78
 
-[tool.poetry.dependencies]
-opensearch-py = "^2.0"
-python = "^3.6"
+[tool.coverage]
+fail_under = 95
 
-[tool.poetry.dev-dependencies]
-# black = {version = "^21.0", allow-prereleases = true}
-bump2version = "^1.0"
-flake8 = "^4.0.1"
-flake8-blind-except = "^0.2.0"
-flake8-bugbear = "^21.9.2"
-flake8-comprehensions = "^3.7.0"
-flake8-docstrings = "^1.6.0"
-flake8-import-order = "^0.18.1"
-flake8-polyfill = "^1.0.2"
-mypy = "^0.910"
-pytest = "^6.0"
-pytest-cov = "^3.0.0"
-radon = "^5.1.0"
-pytest-mypy = "^0.8.1"
+[tool.coverage.run]
+branch = true
+source = "opensearch_logger"
+omit = [
+    "tests/*",
+]
 
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core>=1.2.1"]
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]

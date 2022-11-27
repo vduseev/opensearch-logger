@@ -8,7 +8,7 @@
     <a href="https://pypistats.org/packages/opensearch-logger"><img alt="PyPI Downloads" src="https://img.shields.io/pypi/dm/opensearch-logger?logo=python&logoColor=white&color=blue"></a>
 </p>
 
-This library provides a standard Python logging handler compatible with [OpenSearch][opensearch] suite.
+This library provides a standard Python [logging][logging] handler compatible with [OpenSearch][opensearch] suite.
 
 The **goals** of this project are
 
@@ -214,21 +214,65 @@ handler = OpenSearchHandler(
 
 ## Dependencies
 
-This library uses the following packages
+This library depends on the following packages
 
 * [`opensearch-py`][opensearch-py]
 
 ## Building from source & Developing
 
-This package uses [`pyenv`][pyenv] (optional) and [Poetry][poetry] for development purposes.
+This package uses [`pyenv`][pyenv] (optional) for development purposes.
 It also uses Docker to run OpenSearch container for integration testing during development.
 
 1. Clone the repo.
-1. Instruct poetry to use a proper Python version and install dependencies.
+1. Create a virtual environment using any of the supported Python version.
 
    ```shell
-   poetry env use 3.8.12
-   poetry install
+   # We are using Python 3.11 installed using pyenv for this example
+   pyenv local 3.11.0
+
+   # Create virtual env
+   python -m venv .venv
+
+   # Activate it
+   source .venv/bin/activate
+   ```
+
+1. Install [`pip-tools`][pip-tools] and [`flit`][flit]
+
+   ```shell
+   # Update pip to the latest version, just in case
+   pip install --upgrade pip
+   # Install pip-compile and pip-sync, as well as flit
+   pip install pip-tools flit
+   ```
+
+1. Compile resolved dependency list
+
+   ```shell
+   # Generates requirements.txt file.
+   # This might yield different results for different platforms.
+   pip-compile pyproject.toml
+ 
+   # Resolve dev requirements
+   pip-compile --extra dev -o dev-requirements.txt pyproject.toml
+ 
+   # If you want to upgrade dependencies, then call
+   pip-compile pyproject.toml --upgrade
+   ```
+
+* Install resolved dependencies into virtual environment
+
+  ```shell
+  # Sync current venv with both core and dev dependencies
+  pip-sync requirements.txt dev-requirements.txt
+  ```
+
+1. Install package itself locally.
+
+   Build, publishing, and local installation are done using [`flit`][flit].
+
+   ```shell
+   flit install
    ```
 
 1. Run tests
@@ -248,16 +292,16 @@ It also uses Docker to run OpenSearch container for integration testing during d
    tests/start-opensearch-docker.sh
 
    # Run tests
-   poetry run pytest
+   pytest
 
    # Run coverage tests
-   poetry run pytest --cov --cov-report=html
+   pytest --cov --cov-report=html --cov-config=pyproject.toml
 
    # Run mypy typing verification
-   poetry run pytest --mypy opensearch_logger --strict-markers
+   pytest --mypy opensearch_logger --strict-markers
 
    # Run flake8 to make sure code style is correct
-   poetry run flake8
+   flake8
 
    # Turn off OpenSearch
    tests/stop-opensearch-docker.sh
@@ -272,10 +316,16 @@ It also uses Docker to run OpenSearch container for integration testing during d
    yellow open   test-opensearch-logger-2021.11.08 N0BEEnG2RIuPP0l8RZE0Dg   1   1          7            0     29.7kb         29.7kb
    ```
 
-1. Build a package
+1. Bump package version
 
    ```shell
-   poetry build
+   bump2version patch
+   ```
+
+1. Publish package
+
+   ```shell
+   flit publish
    ```
 
 ## Contributions
@@ -316,9 +366,10 @@ Distributed under the terms of [Apache 2.0][apache-2.0] license, opensearch-logg
 [ecs]: https://www.elastic.co/guide/en/ecs/current/index.html
 [logging-config]: https://docs.python.org/3/library/logging.config.html
 [pyenv]: https://github.com/pyenv/pyenv
-[poetry]: https://python-poetry.org/
 [ecs-mapping]: https://github.com/vduseev/opensearch-logger/blob/main/mappings/ecs1.4.0_compatible_minimal.json
 [apache-2.0]: https://github.com/vduseev/opensearch-logger/blob/main/LICENSE.md
 [python-elasticsearch-ecs-logger]: https://github.com/IMInterne/python-elasticsearch-ecs-logger
 [python-elasticsearch-logger]: https://github.com/cmanaha/python-elasticsearch-logger
 [community-projects]: https://opensearch.org/community_projects
+[pip-tools]: https://pypi.org/project/pip-tools/
+[flit]: https://flit.pypa.io/en/stable/
