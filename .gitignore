@@ -1,3 +1,9 @@
+# Dependencies resolved by pip-tools
+# Commented, because, ideally, this must be done separately for 
+# for every combination of Python version and underlying platform.
+requirements.txt
+dev-requirements.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -79,7 +85,8 @@ target/
 .python-version
 
 # venv
-/venv
+venv
+.venv
 
 # IDE
 .vscode
