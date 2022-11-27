@@ -100,12 +100,12 @@ jobs:
         with:
           name: coverage
           path: coverage.xml
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.10'
 
   measure-coverage:
     name: Report coverage
     needs: run-tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Download coverage results artifact
         uses: actions/download-artifact@v3
