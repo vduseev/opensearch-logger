@@ -260,12 +260,12 @@ It also uses Docker to run OpenSearch container for integration testing during d
    pip-compile pyproject.toml --upgrade
    ```
 
-* Install resolved dependencies into virtual environment
+1. Install resolved dependencies into virtual environment
 
-  ```shell
-  # Sync current venv with both core and dev dependencies
-  pip-sync requirements.txt dev-requirements.txt
-  ```
+   ```shell
+   # Sync current venv with both core and dev dependencies
+   pip-sync requirements.txt dev-requirements.txt
+   ```
 
 1. Install package itself locally.
 
