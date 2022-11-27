@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2021 Vagiz Duseev
+# Copyright 2021-2022 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,5 +21,6 @@ docker run -d --rm \
   -e "node.name=opensearch" \
   -e "discovery.type=single-node" \
   -e "bootstrap.memory_lock=true" \
+  -e "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" \
   -p "9200:9200" \
   opensearchproject/opensearch:latest
