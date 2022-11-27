@@ -62,7 +62,9 @@ fail_under = 95
 
 [tool.coverage.run]
 branch = true
-source = "opensearch_logger"
+source = [
+    "opensearch_logger"
+]
 omit = [
     "tests/*",
 ]
