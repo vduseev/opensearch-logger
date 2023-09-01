@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11"]
         # Service containers are only available on Linux
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idservices
         os: [ubuntu-20.04]
