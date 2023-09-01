@@ -4,6 +4,9 @@
 requirements.txt
 dev-requirements.txt
 
+# Secrets
+.pypirc
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

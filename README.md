@@ -313,7 +313,7 @@ It also uses Docker to run OpenSearch container for integration testing during d
    bump2version patch
    ```
 
-1. Publish package
+1. Publish package (make sure you have correct credentials or `.pypirc` file)
 
    ```shell
    flit publish
