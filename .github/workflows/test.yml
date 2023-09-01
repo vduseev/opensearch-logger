@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.6"
 
       - name: Install pip-tools
         run: pip install pip-tools
@@ -93,14 +93,20 @@ jobs:
       - name: Run tests
         env:
           TEST_OPENSEARCH_HOST: "https://localhost:9200"
-        run: python -m pytest -x --cov --cov-report=xml --cov-config=pyproject.toml
+        run: python -m pytest -x
+
+      - name: Run test coverage
+        env:
+          TEST_OPENSEARCH_HOST: "https://localhost:9200"
+        run: python -m pytest --cov --cov-report=xml --cov-config=pyproject.toml
+        if: matrix.python-version == '3.6'
 
       - name: Save coverage results artifact
         uses: actions/upload-artifact@v3
         with:
           name: coverage
           path: coverage.xml
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.6'
 
   measure-coverage:
     name: Report coverage
