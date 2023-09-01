@@ -8,6 +8,7 @@ deps =
     flake8-black,
 exclude =
     tests/*
+    .venv/*
 ignore =
   #* E203
   # No blank lines allowed after function docstring
