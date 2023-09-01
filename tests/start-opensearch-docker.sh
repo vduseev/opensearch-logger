@@ -18,6 +18,7 @@ docker pull opensearchproject/opensearch:latest
 docker run -d --rm \
   --name test-opensearch-logger \
   -e "cluster.name=opensearch-cluster" \
+  -e "cluster.routing.allocation.disk.threshold_enabled=false" \
   -e "node.name=opensearch" \
   -e "discovery.type=single-node" \
   -e "bootstrap.memory_lock=true" \
