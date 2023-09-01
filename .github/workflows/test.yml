@@ -78,7 +78,7 @@ jobs:
 
       - name: Wait until OpenSearch boots up
         run: |
-          while ! curl -s -k -u "admin:admin" "https://localhost:9200/_cat/health" > /dev/null; do
+          while ! curl -s -k -u "admin:admin" "https://localhost:9200/_cat/health" | grep -q yellow > /dev/null; do
             sleep 1
           done
 
