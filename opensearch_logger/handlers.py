@@ -239,7 +239,7 @@ class OpenSearchHandler(logging.Handler):
     def _schedule_flush(self) -> None:
         if self._timer is None:
             self._timer = Timer(self.flush_frequency, self.flush)
-            self._timer.setDaemon(True)
+            self._timer.daemon = True
             self._timer.start()
 
     def _get_index(self) -> str:
