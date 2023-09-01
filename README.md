@@ -307,15 +307,6 @@ It also uses Docker to run OpenSearch container for integration testing during d
    tests/stop-opensearch-docker.sh
    ```
 
-   Before turning the OpenSearch container off, it is possible to check that the records are actually there.
-
-   ```shell
-   # Verify index is in place and has required number of records
-   $ curl -k -XGET "https://admin:admin@localhost:9200/_cat/indices/test*?v&s=index"
-   health status index                             uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-   yellow open   test-opensearch-logger-2021.11.08 N0BEEnG2RIuPP0l8RZE0Dg   1   1          7            0     29.7kb         29.7kb
-   ```
-
 1. Bump package version
 
    ```shell
@@ -326,6 +317,53 @@ It also uses Docker to run OpenSearch container for integration testing during d
 
    ```shell
    flit publish
+   ```
+
+### Cheat Sheet for working with OpenSearch
+
+1. List all created indices, including count of documents
+
+   ```shell
+   $ curl -k -XGET "https://admin:admin@localhost:9200/_cat/indices/test*?v&s=index"
+   health status index                             uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+   yellow open   test-opensearch-logger-2021.11.08 N0BEEnG2RIuPP0l8RZE0Dg   1   1          7            0     29.7kb         29.7kb
+   ```
+
+1. Count documents in all indexes that start with `test`
+
+   ```shell
+   $ curl -k -XGET "https://admin:admin@localhost:9200/test*/_count"
+   {"count":109,"_shards":{"total":1,"successful":1,"skipped":0,"failed":0}}
+   ```
+
+1. Retrieve all documents from indexes that start with `test`
+
+   ```shell
+   $ curl -k -XGET "https://admin:admin@localhost:9200/test*/_search" -H 'Content-Type: application/json' -d '{"query":{"match_all":{}}}'
+   {
+     "took": 1,
+     "timed_out": false,
+     "hits": {
+       "total": {
+       "value": 109,
+       "relation": "eq"
+     }
+     ...
+   ```
+
+1. Same, but limit the number of returned documents to 10
+
+   ```shell
+   $ curl -k -XGET "https://admin:admin@localhost:9200/test*/_search?size=10" -H 'Content-Type: application/json' -d '{"query":{"match_all":{}}}'
+   {
+     "took": 1,
+     "timed_out": false,
+     "hits": {
+       "total": {
+       "value": 109,
+       "relation": "eq"
+     }
+     ...
    ```
 
 ## Contributions
