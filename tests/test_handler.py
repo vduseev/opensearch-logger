@@ -34,14 +34,14 @@ def test_date():
     return datetime(2021, 11, 8, tzinfo=timezone.utc)
 
 
-def test_missing_opensearch_parameters():
+def test_missing_opensearch_parameters(hosts):
     with pytest.raises(TypeError):
         OpenSearchHandler(index_name="test-opensearch-logger")
 
     with pytest.raises(TypeError):
         OpenSearchHandler()
 
-    handler = OpenSearchHandler(hosts=["https://localhost:9200"])
+    handler = OpenSearchHandler(hosts=hosts)
     assert handler.test_opensearch_connection() is False
 
 
