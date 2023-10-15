@@ -69,6 +69,7 @@ class OpenSearchHandler(logging.Handler):
         flush_frequency: float = 1.0,
         extra_fields: Optional[Dict[str, Any]] = None,
         raise_on_index_exc: bool = False,
+        is_data_stream: bool = False,
         **kwargs: Any,
     ):
         """Initialize OpenSearch logging handler.
@@ -196,8 +197,12 @@ class OpenSearchHandler(logging.Handler):
                     logs_buffer = self._buffer
                     self._buffer = []
 
-                index = self._get_index()
-                actions = [{'_index': index, '_source': record} for record in logs_buffer]
+                if self.is_data_stream:
+                    index = self.index_name
+                    actions = [{'_index': index, '_source': record, '_op_type': 'create'} for record in logs_buffer]
+                else:
+                    index = self._get_index()
+                    actions = [{'_index': index, '_source': record} for record in logs_buffer]
 
                 helpers.bulk(
                     client=self._get_opensearch_client(),
