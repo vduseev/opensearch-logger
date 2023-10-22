@@ -89,7 +89,7 @@ At least one connection parameter **must** be provided, otherwise a `TypeError` 
 
 | Parameter | Default | Description |
 | - | - | - |
-| `index_name` | `"python-logs"` | Base name of the OpenSearch index name that will be created. Or name of the data stream if `is_data_stream` is set to `True`  |
+| `index_name` | `"python-logs"` | Base name of the OpenSearch index name that will be created. Or name of the data stream if `is_data_stream` is set to `True`.  |
 | `index_rotate` | `DAILY` | Frequency that controls what date is appended to index name during its creation. `OpenSearchHandler.DAILY`. |
 | `index_date_format` | `"%Y.%m.%d"` | Format of the date that gets appended to the base index name. |
 | `index_name_sep` | `"-"` | Separator string between `index_name` and the date, appended to the index name. |
