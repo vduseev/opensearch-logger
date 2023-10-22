@@ -89,10 +89,11 @@ At least one connection parameter **must** be provided, otherwise a `TypeError` 
 
 | Parameter | Default | Description |
 | - | - | - |
-| `index_name` | `"python-logs"` | Base name of the OpenSearch index name that will be created. |
+| `index_name` | `"python-logs"` | Base name of the OpenSearch index name that will be created. Or name of the data stream if `is_data_stream` is set to `True`  |
 | `index_rotate` | `DAILY` | Frequency that controls what date is appended to index name during its creation. `OpenSearchHandler.DAILY`. |
 | `index_date_format` | `"%Y.%m.%d"` | Format of the date that gets appended to the base index name. |
 | `index_name_sep` | `"-"` | Separator string between `index_name` and the date, appended to the index name. |
+| `is_data_stream` | `False` | A flag to indicate that the documents will get indexed into a data stream. If `True`, index rotation settings are ignored. |
 | `buffer_size` | `1000` | Number of log records which when reached on the internal buffer results in a flush to OpenSearch. |
 | `flush_frequency` | `1` | Float representing how often the buffer will be flushed (in seconds). |
 | `extra_fields` | `{}` | Nested dictionary with extra fields that will be added to every log record. |
@@ -209,6 +210,24 @@ handler = OpenSearchHandler(
     verify_certs=False,
     ssl_assert_hostname=False,
     ssl_show_warn=False,
+)
+```
+
+## Using Data Streams
+
+Indexing documents into data streams is supported by just setting the `is_data_stream` parameter to `True`.
+
+In this configuration however, It is OpenSearch that solely manages the rollover of the data stream's write index.
+The logging handler's rollover functionality and index rotation settings (e.g. `index_rotate`) are disabled.
+
+The following is an example configuration to send documents to a data stream.
+
+```python
+handler = OpenSearchHandler(
+    index_name="logs-myapp-development",
+    is_data_stream=True,
+    hosts=["https://localhost:9200"],
+    http_auth=("admin", "admin")
 )
 ```
 
