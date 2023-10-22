@@ -69,6 +69,7 @@ class OpenSearchHandler(logging.Handler):
         flush_frequency: float = 1.0,
         extra_fields: Optional[Dict[str, Any]] = None,
         raise_on_index_exc: bool = False,
+        is_data_stream: bool = False,
         **kwargs: Any,
     ):
         """Initialize OpenSearch logging handler.
@@ -144,6 +145,8 @@ class OpenSearchHandler(logging.Handler):
         self.index_date_format = index_date_format
         self.index_name_sep = index_name_sep
 
+        self.is_data_stream = is_data_stream
+
         if extra_fields is None:
             extra_fields = {}
         self.extra_fields = copy.deepcopy(extra_fields.copy())
@@ -197,7 +200,15 @@ class OpenSearchHandler(logging.Handler):
                     self._buffer = []
 
                 index = self._get_index()
-                actions = [{'_index': index, '_source': record} for record in logs_buffer]
+                actions = [
+                  {
+                    '_index': index,
+                    '_source': record,
+                    # op_type must be explicitly set to 'create' for bulk operations
+                    # on data streams. See issue #7.
+                    '_op_type': 'create' if self.is_data_stream else 'index'
+                  } for record in logs_buffer
+                ]
 
                 helpers.bulk(
                     client=self._get_opensearch_client(),
@@ -243,6 +254,10 @@ class OpenSearchHandler(logging.Handler):
             self._timer.start()
 
     def _get_index(self) -> str:
+        if self.is_data_stream:
+            # index rotation is irrelevant when using data streams
+            return self._get_never_index_name()
+
         if RotateFrequency.DAILY == self.index_rotate:
             return self._get_daily_index_name()
         elif RotateFrequency.WEEKLY == self.index_rotate:  # pragma: no cover
