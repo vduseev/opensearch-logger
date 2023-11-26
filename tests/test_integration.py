@@ -1,4 +1,4 @@
-# Copyright 2021 Vagiz Duseev
+# Copyright 2021-2023 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -75,7 +75,9 @@ def test_buffered_log_flushed_when_buffer_full(hosts):
     index = handler._get_index()
     start_count = handler._client.count(index=index)
 
-    logger = logging.getLogger(test_buffered_log_flushed_when_buffer_full.__name__)
+    logger = logging.getLogger(
+        test_buffered_log_flushed_when_buffer_full.__name__
+    )
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
     logger.warning("Message one")
@@ -222,7 +224,9 @@ def test_buffered_log_when_flush_frequency_reached(hosts):
     start_count = handler._client.count(index=index)
     handler.close()
 
-    logger = logging.getLogger(test_buffered_log_when_flush_frequency_reached.__name__)
+    logger = logging.getLogger(
+        test_buffered_log_when_flush_frequency_reached.__name__
+    )
     logger.addHandler(handler)
 
     logger.warning(f"Frequency timeout reached")
@@ -302,7 +306,7 @@ def test_logging_config(hosts):
                 "level": "INFO",
                 "propogate": False,
             }
-        }
+        },
     }
 
     logging.config.dictConfig(LOGGING)

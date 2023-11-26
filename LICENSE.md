@@ -1,4 +1,4 @@
-Copyright 2021-2022 Vagiz Duseev
+Copyright 2021-2023 Vagiz Duseev
 
 Forked from https://github.com/IMInterne/python-elasticsearch-ecs-logger
 

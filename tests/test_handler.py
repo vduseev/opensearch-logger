@@ -1,4 +1,4 @@
-# Copyright 2021 Vagiz Duseev
+# Copyright 2021-2023 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -91,8 +91,18 @@ def test_weekly_index_name(test_date):
         hosts=[],
     )
     assert handler._get_weekly_index_name(test_date) == "i-2021.11.08"
-    assert handler._get_weekly_index_name(datetime(2021, 11, 10, 23, 59, 59, tzinfo=timezone.utc)) == "i-2021.11.08"
-    assert handler._get_weekly_index_name(datetime(2021, 11, 10, 0, 0, 1, tzinfo=timezone.utc)) == "i-2021.11.08"
+    assert (
+        handler._get_weekly_index_name(
+            datetime(2021, 11, 10, 23, 59, 59, tzinfo=timezone.utc)
+        )
+        == "i-2021.11.08"
+    )
+    assert (
+        handler._get_weekly_index_name(
+            datetime(2021, 11, 10, 0, 0, 1, tzinfo=timezone.utc)
+        )
+        == "i-2021.11.08"
+    )
 
 
 def test_monthly_index_name(test_date):

@@ -1,6 +1,6 @@
 """OpenSearch logging Handler facility."""
 
-# Copyright 2021-2022 Vagiz Duseev
+# Copyright 2021-2023 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -54,8 +54,14 @@ class OpenSearchHandler(logging.Handler):
     YEARLY = RotateFrequency.YEARLY
     NEVER = RotateFrequency.NEVER
 
-    _LOGGING_FILTER_FIELDS = ['msecs', 'relativeCreated', 'levelno', 'exc_text', 'msg']
-    _AGENT_TYPE = 'opensearch-logger'
+    _LOGGING_FILTER_FIELDS = [
+        "msecs",
+        "relativeCreated",
+        "levelno",
+        "exc_text",
+        "msg",
+    ]
+    _AGENT_TYPE = "opensearch-logger"
     _AGENT_VERSION = __version__
     _ECS_VERSION = "1.4.0"
 
@@ -150,7 +156,9 @@ class OpenSearchHandler(logging.Handler):
         if extra_fields is None:
             extra_fields = {}
         self.extra_fields = copy.deepcopy(extra_fields.copy())
-        self.extra_fields.setdefault('ecs', {})['version'] = OpenSearchHandler._ECS_VERSION
+        self.extra_fields.setdefault("ecs", {})[
+            "version"
+        ] = OpenSearchHandler._ECS_VERSION
 
         self._client: Optional[OpenSearch] = None
         self._buffer: List[Dict[str, Any]] = []
@@ -160,21 +168,21 @@ class OpenSearchHandler(logging.Handler):
 
         self.raise_on_index_exc: bool = raise_on_index_exc
 
-        agent_dict = self.extra_fields.setdefault('agent', {})
-        agent_dict['ephemeral_id'] = uuid4()
-        agent_dict['type'] = OpenSearchHandler._AGENT_TYPE
-        agent_dict['version'] = OpenSearchHandler._AGENT_VERSION
+        agent_dict = self.extra_fields.setdefault("agent", {})
+        agent_dict["ephemeral_id"] = uuid4()
+        agent_dict["type"] = OpenSearchHandler._AGENT_TYPE
+        agent_dict["version"] = OpenSearchHandler._AGENT_VERSION
 
-        host_dict = self.extra_fields.setdefault('host', {})
+        host_dict = self.extra_fields.setdefault("host", {})
         host_name = socket.gethostname()
-        host_dict['hostname'] = host_name
-        host_dict['name'] = host_name
-        host_dict['id'] = host_name
+        host_dict["hostname"] = host_name
+        host_dict["name"] = host_name
+        host_dict["id"] = host_name
         try:
             ip = socket.gethostbyname(socket.gethostname())
         except socket.gaierror:  # pragma: no cover
             ip = ""
-        host_dict['ip'] = ip
+        host_dict["ip"] = ip
 
     def test_opensearch_connection(self) -> bool:
         """Returns True if the handler can ping the OpenSearch servers.
@@ -189,7 +197,11 @@ class OpenSearchHandler(logging.Handler):
 
     def flush(self) -> None:
         """Flush the buffer into OpenSearch."""
-        if hasattr(self, "_timer") and self._timer is not None and self._timer.is_alive():
+        if (
+            hasattr(self, "_timer")
+            and self._timer is not None
+            and self._timer.is_alive()
+        ):
             self._timer.cancel()
         self._timer = None
 
@@ -201,13 +213,16 @@ class OpenSearchHandler(logging.Handler):
 
                 index = self._get_index()
                 actions = [
-                  {
-                    '_index': index,
-                    '_source': record,
-                    # op_type must be explicitly set to 'create' for bulk operations
-                    # on data streams. See issue #7.
-                    '_op_type': 'create' if self.is_data_stream else 'index'
-                  } for record in logs_buffer
+                    {
+                        "_index": index,
+                        "_source": record,
+                        # op_type must be explicitly set to 'create' for bulk operations
+                        # on data streams. See issue #7.
+                        "_op_type": "create"
+                        if self.is_data_stream
+                        else "index",
+                    }
+                    for record in logs_buffer
                 ]
 
                 helpers.bulk(
@@ -269,7 +284,9 @@ class OpenSearchHandler(logging.Handler):
         else:  # pragma: no cover
             return self._get_never_index_name()
 
-    def _convert_log_record_to_doc(self, record: logging.LogRecord) -> Dict[str, Any]:
+    def _convert_log_record_to_doc(
+        self, record: logging.LogRecord
+    ) -> Dict[str, Any]:
         """Take the original logging.LogRecord and map its attributes to ecs fields.
 
         Args:
@@ -281,60 +298,83 @@ class OpenSearchHandler(logging.Handler):
         log_record_dict = record.__dict__.copy()
         doc = copy.deepcopy(self.extra_fields)
 
-        if 'created' in log_record_dict:  # pragma: no cover
-            doc['@timestamp'] = self._get_opensearch_datetime_str(log_record_dict.pop('created'))
+        if "created" in log_record_dict:  # pragma: no cover
+            doc["@timestamp"] = self._get_opensearch_datetime_str(
+                log_record_dict.pop("created")
+            )
 
-        if 'message' in log_record_dict:  # pragma: no cover
-            message = log_record_dict.pop('message')
-            doc['message'] = message
-            doc.setdefault('log', {})['original'] = message
+        if "message" in log_record_dict:  # pragma: no cover
+            message = log_record_dict.pop("message")
+            doc["message"] = message
+            doc.setdefault("log", {})["original"] = message
 
-        if 'levelname' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {})['level'] = log_record_dict.pop('levelname')
+        if "levelname" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {})["level"] = log_record_dict.pop(
+                "levelname"
+            )
 
-        if 'name' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {})['logger'] = log_record_dict.pop('name')
+        if "name" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {})["logger"] = log_record_dict.pop("name")
 
-        if 'lineno' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('origin', {}).setdefault('file', {})[
-                'line'] = log_record_dict.pop('lineno')
+        if "lineno" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("origin", {}).setdefault(
+                "file", {}
+            )["line"] = log_record_dict.pop("lineno")
 
-        if 'filename' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('origin', {}).setdefault('file', {})[
-                'name'] = log_record_dict.pop('filename')
+        if "filename" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("origin", {}).setdefault(
+                "file", {}
+            )["name"] = log_record_dict.pop("filename")
 
-        if 'pathname' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('origin', {}).setdefault('file', {})[
-                'path'] = log_record_dict.pop('pathname')
+        if "pathname" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("origin", {}).setdefault(
+                "file", {}
+            )["path"] = log_record_dict.pop("pathname")
 
-        if 'funcName' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('origin', {})['function'] = log_record_dict.pop('funcName')
+        if "funcName" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("origin", {})[
+                "function"
+            ] = log_record_dict.pop("funcName")
 
-        if 'module' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('origin', {})['module'] = log_record_dict.pop('module')
+        if "module" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("origin", {})[
+                "module"
+            ] = log_record_dict.pop("module")
 
-        if 'processName' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('process', {})['name'] = log_record_dict.pop('processName')
+        if "processName" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("process", {})[
+                "name"
+            ] = log_record_dict.pop("processName")
 
-        if 'process' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('process', {})['pid'] = log_record_dict.pop('process')
+        if "process" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("process", {})[
+                "pid"
+            ] = log_record_dict.pop("process")
 
-        if 'threadName' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('thread', {})['name'] = log_record_dict.pop('threadName')
+        if "threadName" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("thread", {})[
+                "name"
+            ] = log_record_dict.pop("threadName")
 
-        if 'thread' in log_record_dict:  # pragma: no cover
-            doc.setdefault('log', {}).setdefault('thread', {})['id'] = log_record_dict.pop('thread')
+        if "thread" in log_record_dict:  # pragma: no cover
+            doc.setdefault("log", {}).setdefault("thread", {})[
+                "id"
+            ] = log_record_dict.pop("thread")
 
-        if 'exc_info' in log_record_dict:  # pragma: no cover
-            exc_info = log_record_dict.pop('exc_info')
+        if "exc_info" in log_record_dict:  # pragma: no cover
+            exc_info = log_record_dict.pop("exc_info")
             if exc_info:
                 exc_type, exc_value, traceback_object = exc_info
-                doc['error'] = {
-                    'code': exc_type.__name__,
-                    'id': uuid4(),
-                    'type': exc_type.__name__,
-                    'message': str(exc_value),
-                    'stack_trace': "".join(traceback.format_exception(exc_type, exc_value, traceback_object))
+                doc["error"] = {
+                    "code": exc_type.__name__,
+                    "id": uuid4(),
+                    "type": exc_type.__name__,
+                    "message": str(exc_value),
+                    "stack_trace": "".join(
+                        traceback.format_exception(
+                            exc_type, exc_value, traceback_object
+                        )
+                    ),
                 }
 
         # Copy unknown attributes of the log_record object.
@@ -346,30 +386,44 @@ class OpenSearchHandler(logging.Handler):
 
         return doc
 
-    def _get_daily_index_name(self, current_date: Optional[datetime] = None) -> str:
+    def _get_daily_index_name(
+        self, current_date: Optional[datetime] = None
+    ) -> str:
         if current_date is None:
             current_date = datetime.now(tz=timezone.utc)  # pragma: no cover
         return f"{self.index_name}{self.index_name_sep}{current_date.strftime(self.index_date_format)}"
 
-    def _get_weekly_index_name(self, current_date: Optional[datetime] = None) -> str:
+    def _get_weekly_index_name(
+        self, current_date: Optional[datetime] = None
+    ) -> str:
         if current_date is None:
             current_date = datetime.now(tz=timezone.utc)  # pragma: no cover
-        start_of_the_week = current_date - timedelta(days=current_date.weekday())
+        start_of_the_week = current_date - timedelta(
+            days=current_date.weekday()
+        )
         return f"{self.index_name}{self.index_name_sep}{start_of_the_week.strftime(self.index_date_format)}"
 
-    def _get_monthly_index_name(self, current_date: Optional[datetime] = None) -> str:
+    def _get_monthly_index_name(
+        self, current_date: Optional[datetime] = None
+    ) -> str:
         if current_date is None:
             current_date = datetime.now(tz=timezone.utc)  # pragma: no cover
-        first_date_of_month = datetime(current_date.year, current_date.month, 1)
+        first_date_of_month = datetime(
+            current_date.year, current_date.month, 1
+        )
         return f"{self.index_name}{self.index_name_sep}{first_date_of_month.strftime(self.index_date_format)}"
 
-    def _get_yearly_index_name(self, current_date: Optional[datetime] = None) -> str:
+    def _get_yearly_index_name(
+        self, current_date: Optional[datetime] = None
+    ) -> str:
         if current_date is None:
             current_date = datetime.now(tz=timezone.utc)  # pragma: no cover
         first_date_of_year = datetime(current_date.year, 1, 1)
         return f"{self.index_name}{self.index_name_sep}{first_date_of_year.strftime(self.index_date_format)}"
 
-    def _get_never_index_name(self, current_date: Optional[datetime] = None) -> str:
+    def _get_never_index_name(
+        self, current_date: Optional[datetime] = None
+    ) -> str:
         return self.index_name
 
     @staticmethod

@@ -1,4 +1,4 @@
-# Copyright 2021 Vagiz Duseev
+# Copyright 2021-2023 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@ def formatter():
     return logging.Formatter("%(asctime)s")
 
 
-def test_dumps_classic_log(logger: logging.Logger, formatter: logging.Formatter):
+def test_dumps_classic_log(
+    logger: logging.Logger, formatter: logging.Formatter
+):
     """Test classic log serialization."""
     serializer = OpenSearchLoggerSerializer()
     record = logger.makeRecord(
@@ -52,7 +54,9 @@ def test_dumps_classic_log(logger: logging.Logger, formatter: logging.Formatter)
         serializer.dumps(value)
 
 
-def test_dumps_exception_log(logger: logging.Logger, formatter: logging.Formatter):
+def test_dumps_exception_log(
+    logger: logging.Logger, formatter: logging.Formatter
+):
     """Test the exception log serialization with the exc_info field."""
     serializer = OpenSearchLoggerSerializer()
     try:
@@ -75,7 +79,9 @@ def test_dumps_exception_log(logger: logging.Logger, formatter: logging.Formatte
             serializer.dumps(value)
 
 
-def test_dumps_log_with_extras_and_args(logger: logging.Logger, formatter: logging.Formatter):
+def test_dumps_log_with_extras_and_args(
+    logger: logging.Logger, formatter: logging.Formatter
+):
     """Test log serialization with arguments and extras."""
     serializer = OpenSearchLoggerSerializer()
     record = logger.makeRecord(

@@ -57,6 +57,7 @@ dev = [
   "pytest-cov",
   "radon",
   "pytest-mypy",
+  "black",
 ]
 
 [tool.black]
