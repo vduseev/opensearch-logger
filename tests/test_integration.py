@@ -29,16 +29,34 @@ def hosts():
     return [host]
 
 
-def test_ping(hosts):
+@pytest.fixture(scope="module")
+def opensearch_config(hosts):
+    """Generate OpenSearch connection config based on host URL."""
+    host = hosts[0]
+    
+    if host.startswith("https://"):
+        # Local development with security enabled
+        return {
+            "hosts": hosts,
+            "http_compress": True,
+            "http_auth": ("admin", "admin"),
+            "use_ssl": True,
+            "verify_certs": False,
+            "ssl_assert_hostname": False,
+            "ssl_show_warn": False,
+        }
+    else:
+        # CI environment with security disabled
+        return {
+            "hosts": hosts,
+            "http_compress": True,
+        }
+
+
+def test_ping(opensearch_config):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -55,19 +73,13 @@ def test_ping(hosts):
     handler.close()
 
 
-def test_buffered_log_flushed_when_buffer_full(hosts):
+def test_buffered_log_flushed_when_buffer_full(opensearch_config):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         index_rotate="DAILY",
         buffer_size=2,
         flush_frequency=1000,
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -92,18 +104,12 @@ def test_buffered_log_flushed_when_buffer_full(hosts):
     assert end_count["count"] - start_count["count"] == 2
 
 
-def test_log_with_extra_fields(hosts):
+def test_log_with_extra_fields(opensearch_config):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
         extra_fields={"App": "test", "Nested": {"One": 1, "Two": 2}},
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -130,18 +136,12 @@ def test_log_with_extra_fields(hosts):
     assert end_count["count"] - start_count["count"] == 1
 
 
-def test_log_extra_arguments(hosts):
+def test_log_extra_arguments(opensearch_config):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
         extra_fields={"App": "test", "Nested": {"One": 1, "Two": 2}},
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -169,17 +169,11 @@ def test_log_extra_arguments(hosts):
     assert end_count["count"] - start_count["count"] == 2
 
 
-def test_log_exception(hosts):
+def test_log_exception(opensearch_config):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -205,17 +199,11 @@ def test_log_exception(hosts):
     assert end_count["count"] - start_count["count"] == 1
 
 
-def test_buffered_log_when_flush_frequency_reached(hosts):
+def test_buffered_log_when_flush_frequency_reached(opensearch_config):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=0.1,
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -240,17 +228,11 @@ def test_buffered_log_when_flush_frequency_reached(hosts):
     assert end_count["count"] - start_count["count"] == 1
 
 
-def test_fast_processing_of_many_logs(hosts):
+def test_fast_processing_of_many_logs(opensearch_config):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -278,27 +260,24 @@ def test_fast_processing_of_many_logs(hosts):
     assert end_count["count"] - start_count["count"] == 100
 
 
-def test_logging_config(hosts):
+def test_logging_config(hosts, opensearch_config):
     import logging
     import logging.config
+
+    # Build handler config from opensearch_config
+    handler_config = {
+        "level": "INFO",
+        "class": "opensearch_logger.OpenSearchHandler",
+        "index_name": "test-opensearch-logger",
+        "flush_frequency": 0.1,
+        **opensearch_config,
+    }
 
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
         "handlers": {
-            "opensearch": {
-                "level": "INFO",
-                "class": "opensearch_logger.OpenSearchHandler",
-                "hosts": hosts,
-                "index_name": "test-opensearch-logger",
-                "flush_frequency": 0.1,
-                "http_compress": True,
-                "http_auth": ("admin", "admin"),
-                "use_ssl": True,
-                "verify_certs": False,
-                "ssl_assert_hostname": False,
-                "ssl_show_warn": False,
-            }
+            "opensearch": handler_config
         },
         "loggers": {
             "foo": {
@@ -314,13 +293,7 @@ def test_logging_config(hosts):
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
-        hosts=hosts,
-        http_compress=True,
-        http_auth=("admin", "admin"),
-        use_ssl=True,
-        verify_certs=False,
-        ssl_assert_hostname=False,
-        ssl_show_warn=False,
+        **opensearch_config,
     )
 
     assert handler.test_opensearch_connection()

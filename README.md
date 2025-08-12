@@ -239,104 +239,104 @@ This library depends on the following packages
 
 ## Building from source & Developing
 
-This package uses [`pyenv`][pyenv] (optional) for development purposes.
+This package uses [`uv`][uv] for fast dependency management and [`pyenv`][pyenv] (optional) for Python version management.
 It also uses Docker to run OpenSearch container for integration testing during development.
 
+### Requirements
+- Python 3.9 or later
+- [uv](https://docs.astral.sh/uv/) package manager
+- Docker (for running OpenSearch during testing)
+
+### Setup
+
 1. Clone the repo.
-1. Create a virtual environment using any of the supported Python version.
+1. Install uv if you haven't already:
 
    ```shell
-   # We are using Python 3.11 installed using pyenv for this example
-   pyenv local 3.11.0
-
-   # Create virtual env
-   python -m venv .venv
-
-   # Activate it
-   source .venv/bin/activate
+   # On macOS and Linux
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   
+   # Or with pip
+   pip install uv
    ```
 
-1. Install [`pip-tools`][pip-tools] and [`flit`][flit]
+1. Set up the development environment:
 
    ```shell
-   # Update pip to the latest version, just in case
-   pip install --upgrade pip
-   # Install pip-compile and pip-sync, as well as flit
-   pip install pip-tools flit
+   # Install dependencies and create virtual environment
+   uv sync
+   
+   # This automatically:
+   # - Creates a virtual environment
+   # - Installs all dependencies from uv.lock
+   # - Installs the package in development mode
    ```
 
-1. Compile resolved dependency list
+### Development Workflow
+
+1. **Running Tests**
+
+   Tests require OpenSearch running on `https://localhost:9200` (local dev) or `http://localhost:9200` (CI).
+   The tests automatically adapt based on the URL scheme to handle authentication and SSL settings.
 
    ```shell
-   # Generates requirements.txt file.
-   # This might yield different results for different platforms.
-   pip-compile pyproject.toml
- 
-   # Resolve dev requirements
-   pip-compile --extra dev -o dev-requirements.txt pyproject.toml
- 
-   # If you want to upgrade dependencies, then call
-   pip-compile pyproject.toml --upgrade
-   ```
-
-1. Install resolved dependencies into virtual environment
-
-   ```shell
-   # Sync current venv with both core and dev dependencies
-   pip-sync requirements.txt dev-requirements.txt
-   ```
-
-1. Install package itself locally.
-
-   Build, publishing, and local installation are done using [`flit`][flit].
-
-   ```shell
-   flit install
-   ```
-
-1. Run tests
-
-   **WARNING**: You need opensearch running on `https://localhost:9200` to run the tests.
-   Part of the tests verifies that correct number of logs actually gets into OpenSearch.
-   Alternatively, you can specify the `TEST_OPENSEARCH_HOST` variable and set it to a different value pointing
-   to the running OpenSearch server.
-
-   There are not many tests, but they run with **5 seconds cooldown each** to allow OpenSearch to process the
-   newly sent log records properly and verify their count.
-
-   Small helper scripts are available in the `tests/` directory to start and stop OpenSearch using Docker.
-
-   ```shell
-   # Give it 5-10 seconds to initialize before running tests
+   # Start OpenSearch with Docker (for local development)
    tests/start-opensearch-docker.sh
-
-   # Run tests
-   pytest
-
-   # Run coverage tests
-   pytest --cov --cov-report=html --cov-config=pyproject.toml
-
-   # Run mypy typing verification
-   pytest --mypy opensearch_logger --strict-markers
-
-   # Run flake8 to make sure code style is correct
-   flake8
-
-   # Turn off OpenSearch
+   
+   # Wait 5-10 seconds, then run tests
+   uv run pytest
+   
+   # Run with coverage
+   uv run pytest --cov --cov-report=html
+   
+   # Stop OpenSearch
    tests/stop-opensearch-docker.sh
    ```
 
-1. Bump package version
+1. **Code Quality**
 
    ```shell
-   bump2version patch
+   # Format code
+   uv run ruff format .
+   
+   # Check linting
+   uv run ruff check .
+   
+   # Type checking
+   uv run mypy opensearch_logger --strict
    ```
 
-1. Publish package (make sure you have correct credentials or `.pypirc` file)
+1. **Dependency Management**
 
    ```shell
-   flit publish
+   # Add a new dependency to pyproject.toml, then:
+   uv sync
+   
+   # Update all dependencies to latest versions
+   uv lock --upgrade
+   uv sync
    ```
+
+### Release Process
+
+1. **Version Management**
+
+   ```shell
+   # Bump version (patch/minor/major)
+   uv run bump2version patch
+   ```
+
+1. **Building and Publishing**
+
+   ```shell
+   # Build package
+   uv build
+   
+   # Publish to PyPI (requires proper authentication)
+   uv publish
+   ```
+
+**Note**: The CI/CD pipeline automatically handles building and publishing when version tags are pushed to the repository.
 
 ### Cheat Sheet for working with OpenSearch
 
@@ -428,5 +428,4 @@ Distributed under the terms of [Apache 2.0][apache-2.0] license, opensearch-logg
 [python-elasticsearch-ecs-logger]: https://github.com/IMInterne/python-elasticsearch-ecs-logger
 [python-elasticsearch-logger]: https://github.com/cmanaha/python-elasticsearch-logger
 [community-projects]: https://opensearch.org/community_projects
-[pip-tools]: https://pypi.org/project/pip-tools/
-[flit]: https://flit.pypa.io/en/stable/
+[uv]: https://docs.astral.sh/uv/
