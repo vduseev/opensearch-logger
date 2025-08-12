@@ -31,9 +31,9 @@ jobs:
         run: |
           # Create a clean environment and test installation
           uv venv test-env
-          source .venv/bin/activate
+          source test-env/bin/activate
           uv pip install dist/*.whl
-          python -c "import opensearch_logger; print(f'Package version: {opensearch_logger.__version__}')"
+          python -c "from opensearch_logger.version import __version__; print(f'Package version: {__version__}')"
           
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

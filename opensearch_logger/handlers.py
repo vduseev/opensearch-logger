@@ -156,9 +156,9 @@ class OpenSearchHandler(logging.Handler):
         if extra_fields is None:
             extra_fields = {}
         self.extra_fields = copy.deepcopy(extra_fields.copy())
-        self.extra_fields.setdefault("ecs", {})[
-            "version"
-        ] = OpenSearchHandler._ECS_VERSION
+        self.extra_fields.setdefault("ecs", {})["version"] = (
+            OpenSearchHandler._ECS_VERSION
+        )
 
         self._client: Optional[OpenSearch] = None
         self._buffer: List[Dict[str, Any]] = []
@@ -332,34 +332,34 @@ class OpenSearchHandler(logging.Handler):
             )["path"] = log_record_dict.pop("pathname")
 
         if "funcName" in log_record_dict:  # pragma: no cover
-            doc.setdefault("log", {}).setdefault("origin", {})[
-                "function"
-            ] = log_record_dict.pop("funcName")
+            doc.setdefault("log", {}).setdefault("origin", {})["function"] = (
+                log_record_dict.pop("funcName")
+            )
 
         if "module" in log_record_dict:  # pragma: no cover
-            doc.setdefault("log", {}).setdefault("origin", {})[
-                "module"
-            ] = log_record_dict.pop("module")
+            doc.setdefault("log", {}).setdefault("origin", {})["module"] = (
+                log_record_dict.pop("module")
+            )
 
         if "processName" in log_record_dict:  # pragma: no cover
-            doc.setdefault("log", {}).setdefault("process", {})[
-                "name"
-            ] = log_record_dict.pop("processName")
+            doc.setdefault("log", {}).setdefault("process", {})["name"] = (
+                log_record_dict.pop("processName")
+            )
 
         if "process" in log_record_dict:  # pragma: no cover
-            doc.setdefault("log", {}).setdefault("process", {})[
-                "pid"
-            ] = log_record_dict.pop("process")
+            doc.setdefault("log", {}).setdefault("process", {})["pid"] = (
+                log_record_dict.pop("process")
+            )
 
         if "threadName" in log_record_dict:  # pragma: no cover
-            doc.setdefault("log", {}).setdefault("thread", {})[
-                "name"
-            ] = log_record_dict.pop("threadName")
+            doc.setdefault("log", {}).setdefault("thread", {})["name"] = (
+                log_record_dict.pop("threadName")
+            )
 
         if "thread" in log_record_dict:  # pragma: no cover
-            doc.setdefault("log", {}).setdefault("thread", {})[
-                "id"
-            ] = log_record_dict.pop("thread")
+            doc.setdefault("log", {}).setdefault("thread", {})["id"] = (
+                log_record_dict.pop("thread")
+            )
 
         if "exc_info" in log_record_dict:  # pragma: no cover
             exc_info = log_record_dict.pop("exc_info")

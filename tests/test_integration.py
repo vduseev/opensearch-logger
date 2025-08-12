@@ -33,7 +33,7 @@ def hosts():
 def opensearch_config(hosts):
     """Generate OpenSearch connection config based on host URL."""
     host = hosts[0]
-    
+
     if host.startswith("https://"):
         # Local development with security enabled
         return {
@@ -276,9 +276,7 @@ def test_logging_config(hosts, opensearch_config):
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
-        "handlers": {
-            "opensearch": handler_config
-        },
+        "handlers": {"opensearch": handler_config},
         "loggers": {
             "foo": {
                 "handlers": ["opensearch"],
