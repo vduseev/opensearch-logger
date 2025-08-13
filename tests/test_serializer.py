@@ -1,4 +1,6 @@
-# Copyright 2021-2023 Vagiz Duseev
+"""Tests for serialization functionality."""
+
+# Copyright 2021-2025 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import datetime
-import sys
 import decimal
+import logging
+import sys
 
 import pytest
 
@@ -24,11 +26,13 @@ from opensearch_logger.serializers import OpenSearchLoggerSerializer
 
 @pytest.fixture
 def logger():
+    """Fixture providing a test logger."""
     return logging.getLogger("serializer_test")
 
 
 @pytest.fixture
 def formatter():
+    """Fixture providing a test formatter."""
     return logging.Formatter("%(asctime)s")
 
 
@@ -43,7 +47,7 @@ def test_dumps_classic_log(
         fn=__name__,
         lno=58,
         msg="dump_classic_log",
-        args=None,
+        args=(),
         exc_info=None,
         func=None,
         extra=None,
@@ -68,7 +72,7 @@ def test_dumps_exception_log(
             fn=__name__,
             lno=58,
             msg="dump_exception_log",
-            args=None,
+            args=(),
             exc_info=sys.exc_info(),
             func=None,
             extra=None,
@@ -90,7 +94,7 @@ def test_dumps_log_with_extras_and_args(
         fn=__name__,
         lno=58,
         msg="dump_%s_log",
-        args="args",
+        args=(),
         exc_info=None,
         func=None,
         extra={

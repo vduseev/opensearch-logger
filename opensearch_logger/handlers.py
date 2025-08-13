@@ -1,6 +1,6 @@
 """OpenSearch logging Handler facility."""
 
-# Copyright 2021-2023 Vagiz Duseev
+# Copyright 2021-2025 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ from threading import Lock, Timer
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
-from opensearchpy import OpenSearch
-from opensearchpy import helpers
+from opensearchpy import OpenSearch, helpers
 
 from .serializers import OpenSearchLoggerSerializer
 from .version import __version__
@@ -80,14 +79,17 @@ class OpenSearchHandler(logging.Handler):
     ):
         """Initialize OpenSearch logging handler.
 
-        All of the parameters have default values except for connection parameters.
-        Connection parameters are read from kwargs and passed directly to OpenSearch
-        client. See opensearch-py documentation for the full list of accepted parameters.
+        All of the parameters have default values except for connection
+        parameters. Connection parameters are read from kwargs and passed
+        directly to OpenSearch client. See opensearch-py documentation for the
+        full list of
+        accepted parameters.
 
-        By default, the corresponsing date will be appended to the index_name. Consider
-        a week between Nov 8, 2021 (Monday) and Nov 14, 2021 (Sunday). In case It Is
-        Wednesday, my dudes, then, depending on the index_rotate parameter, the index
-        name for that day will be:
+        By default, the corresponsing date will be appended to the index_name.
+        Consider a week between Nov 8, 2021 (Monday) and Nov 14, 2021
+        (Sunday).
+        In case It Is Wednesday, my dudes, then, depending on the index_rotate
+        parameter, the index name for that day will be:
 
         * python-logs-2021.11.10 for DAILY
         * python-logs-2021.11.08 for WEEKLY (first day of the week)
@@ -97,19 +99,25 @@ class OpenSearchHandler(logging.Handler):
 
         Args:
             index_name: Base name for the index with logs. Example: "my-logs"
-            index_rotate: Index rotation frequency. Example: OpenSearchHandler.DAILY.
+            index_rotate: Index rotation frequency. Example:
+                OpenSearchHandler.DAILY.
             index_date_format: Format of the date appended to index name.
             index_name_sep: Separator between base name and appended date.
-            buffer_size: How many messages are accumulated before being flushed.
-            flush_frequency: Seconds to wait before sending messages to OpenSearch
-                irrespective of whether the buffer is full or not.
-            extra_fields: Dict of value that will be appended to every message sent.
-            raise_on_index_exc: Raise exception if indexing to OpenSearch fails.
+            buffer_size: How many messages are accumulated before being
+                flushed.
+            flush_frequency: Seconds to wait before sending messages to
+                OpenSearch irrespective of whether the buffer is full or not.
+            extra_fields: Dict of value that will be appended to every
+                message sent.
+            raise_on_index_exc: Raise exception if indexing to OpenSearch
+                fails.
+            is_data_stream: Whether to use OpenSearch data streams instead of
+                indices.
             kwargs: Connection parameters for OpenSearch client.
 
         Examples:
-            The configuration below is suitable for connection to an OpenSearch docker
-            container running locally.
+            The configuration below is suitable for connection to an
+            OpenSearch docker container running locally.
 
             >>> import logging
             >>> from opensearch_logger import OpenSearchHandler
@@ -127,11 +135,14 @@ class OpenSearchHandler(logging.Handler):
             >>> logger.setLevel(logging.INFO)
             >>> logger.addHandler(handler)
             >>> logger.info("This message will be indexed in OpenSearch")
-            >>> logger.info(f"This one will have extra fields", extra={"topic": "dev})
+            >>> logger.info(
+            ...     f"This one will have extra fields", extra={"topic": "dev"}
+            ... )
         """
         logging.Handler.__init__(self)
 
-        # Throw an exception if connection arguments for Openserach client are empty
+        # Throw an exception if connection arguments for Openserach client
+        # are empty
         if not kwargs:
             raise TypeError("Missing OpenSearch connection parameters.")
 
@@ -187,13 +198,15 @@ class OpenSearchHandler(logging.Handler):
     def test_opensearch_connection(self) -> bool:
         """Returns True if the handler can ping the OpenSearch servers.
 
-        Can be used to confirm the setup of a handler has been properly done and confirm
+        Can be used to confirm the setup of a handler has been properly done
+        and confirm
         that things like the authentication are working properly.
 
         Returns:
-            bool: True if the connection against elasticserach host was successful.
+            bool: True if the connection against elasticserach host was
+                successful.
         """
-        return self._get_opensearch_client().ping()
+        return bool(self._get_opensearch_client().ping())
 
     def flush(self) -> None:
         """Flush the buffer into OpenSearch."""
@@ -216,7 +229,8 @@ class OpenSearchHandler(logging.Handler):
                     {
                         "_index": index,
                         "_source": record,
-                        # op_type must be explicitly set to 'create' for bulk operations
+                        # op_type must be explicitly set to 'create' for
+                        # bulk operations
                         # on data streams. See issue #7.
                         "_op_type": "create"
                         if self.is_data_stream
@@ -231,7 +245,7 @@ class OpenSearchHandler(logging.Handler):
                     stats_only=True,
                 )
 
-            except Exception as exception:  # noqa: B902
+            except Exception as exception:  # noqa: BLE001
                 if self.raise_on_index_exc:
                     raise exception
 
@@ -287,13 +301,14 @@ class OpenSearchHandler(logging.Handler):
     def _convert_log_record_to_doc(
         self, record: logging.LogRecord
     ) -> Dict[str, Any]:
-        """Take the original logging.LogRecord and map its attributes to ecs fields.
+        """Map attributes of LogRecord to ecs fields.
 
         Args:
             record: The original LogRecord.
 
         Returns:
-            Dict[str, Any]: OpenSearch ECS compliant document with all the proper meta data fields.
+            Dict[str, Any]: OpenSearch ECS compliant document with all the
+                proper meta data fields.
         """
         log_record_dict = record.__dict__.copy()
         doc = copy.deepcopy(self.extra_fields)
@@ -391,7 +406,8 @@ class OpenSearchHandler(logging.Handler):
     ) -> str:
         if current_date is None:
             current_date = datetime.now(tz=timezone.utc)  # pragma: no cover
-        return f"{self.index_name}{self.index_name_sep}{current_date.strftime(self.index_date_format)}"
+        date_str = current_date.strftime(self.index_date_format)
+        return f"{self.index_name}{self.index_name_sep}{date_str}"
 
     def _get_weekly_index_name(
         self, current_date: Optional[datetime] = None
@@ -401,7 +417,8 @@ class OpenSearchHandler(logging.Handler):
         start_of_the_week = current_date - timedelta(
             days=current_date.weekday()
         )
-        return f"{self.index_name}{self.index_name_sep}{start_of_the_week.strftime(self.index_date_format)}"
+        date_str = start_of_the_week.strftime(self.index_date_format)
+        return f"{self.index_name}{self.index_name_sep}{date_str}"
 
     def _get_monthly_index_name(
         self, current_date: Optional[datetime] = None
@@ -411,7 +428,8 @@ class OpenSearchHandler(logging.Handler):
         first_date_of_month = datetime(
             current_date.year, current_date.month, 1
         )
-        return f"{self.index_name}{self.index_name_sep}{first_date_of_month.strftime(self.index_date_format)}"
+        date_str = first_date_of_month.strftime(self.index_date_format)
+        return f"{self.index_name}{self.index_name_sep}{date_str}"
 
     def _get_yearly_index_name(
         self, current_date: Optional[datetime] = None
@@ -419,7 +437,8 @@ class OpenSearchHandler(logging.Handler):
         if current_date is None:
             current_date = datetime.now(tz=timezone.utc)  # pragma: no cover
         first_date_of_year = datetime(current_date.year, 1, 1)
-        return f"{self.index_name}{self.index_name_sep}{first_date_of_year.strftime(self.index_date_format)}"
+        date_str = first_date_of_year.strftime(self.index_date_format)
+        return f"{self.index_name}{self.index_name_sep}{date_str}"
 
     def _get_never_index_name(
         self, current_date: Optional[datetime] = None
@@ -434,7 +453,8 @@ class OpenSearchHandler(logging.Handler):
             timestamp (float): Timestamp, including milliseconds.
 
         Returns:
-            str: A string valid for OpenSearch record such "2021-11-08T10:04:06.122Z".
+            str: A string valid for OpenSearch record such
+                "2021-11-08T10:04:06.122Z".
         """
         dt = datetime.utcfromtimestamp(timestamp)
         fmt = "%Y-%m-%dT%H:%M:%S"

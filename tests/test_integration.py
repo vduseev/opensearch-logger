@@ -1,4 +1,6 @@
-# Copyright 2021-2023 Vagiz Duseev
+"""Integration tests for opensearch-logger."""
+
+# Copyright 2021-2025 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +25,8 @@ from opensearch_logger import OpenSearchHandler
 
 @pytest.fixture(scope="module")
 def hosts():
-    DEFAULT_OPENSEARCH_HOST = "https://localhost:9200"
+    """Fixture providing OpenSearch hosts."""
+    DEFAULT_OPENSEARCH_HOST = "https://admin:0penSe*rch@localhost:9200"
     host = os.environ.get("TEST_OPENSEARCH_HOST", DEFAULT_OPENSEARCH_HOST)
 
     return [host]
@@ -54,6 +57,7 @@ def opensearch_config(hosts):
 
 
 def test_ping(opensearch_config):
+    """Test OpenSearch connection ping."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         **opensearch_config,
@@ -74,6 +78,7 @@ def test_ping(opensearch_config):
 
 
 def test_buffered_log_flushed_when_buffer_full(opensearch_config):
+    """Test that buffered logs are flushed when buffer is full."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         index_rotate="DAILY",
@@ -85,7 +90,7 @@ def test_buffered_log_flushed_when_buffer_full(opensearch_config):
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._client.count(index=index)
+    start_count = handler._get_opensearch_client().count(index=index)
 
     logger = logging.getLogger(
         test_buffered_log_flushed_when_buffer_full.__name__
@@ -99,12 +104,13 @@ def test_buffered_log_flushed_when_buffer_full(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._client.count(index=index)
+    end_count = handler._get_opensearch_client().count(index=index)
 
     assert end_count["count"] - start_count["count"] == 2
 
 
 def test_log_with_extra_fields(opensearch_config):
+    """Test logging with extra fields."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
@@ -115,7 +121,7 @@ def test_log_with_extra_fields(opensearch_config):
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._client.count(index=index)
+    start_count = handler._get_opensearch_client().count(index=index)
 
     logger = logging.getLogger(test_log_with_extra_fields.__name__)
     logger.addHandler(handler)
@@ -132,11 +138,12 @@ def test_log_with_extra_fields(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._client.count(index=index)
+    end_count = handler._get_opensearch_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1
 
 
 def test_log_extra_arguments(opensearch_config):
+    """Test logging with extra arguments."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
@@ -147,7 +154,7 @@ def test_log_extra_arguments(opensearch_config):
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._client.count(index=index)
+    start_count = handler._get_opensearch_client().count(index=index)
 
     logger = logging.getLogger(test_log_extra_arguments.__name__)
     logger.addHandler(handler)
@@ -165,11 +172,12 @@ def test_log_extra_arguments(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._client.count(index=index)
+    end_count = handler._get_opensearch_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 2
 
 
 def test_log_exception(opensearch_config):
+    """Test logging exceptions."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
@@ -179,7 +187,7 @@ def test_log_exception(opensearch_config):
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._client.count(index=index)
+    start_count = handler._get_opensearch_client().count(index=index)
 
     logger = logging.getLogger(test_log_exception.__name__)
     logger.addHandler(handler)
@@ -195,11 +203,12 @@ def test_log_exception(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._client.count(index=index)
+    end_count = handler._get_opensearch_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1
 
 
 def test_buffered_log_when_flush_frequency_reached(opensearch_config):
+    """Test that logs are flushed when flush frequency is reached."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=0.1,
@@ -209,7 +218,7 @@ def test_buffered_log_when_flush_frequency_reached(opensearch_config):
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._client.count(index=index)
+    start_count = handler._get_opensearch_client().count(index=index)
     handler.close()
 
     logger = logging.getLogger(
@@ -217,18 +226,19 @@ def test_buffered_log_when_flush_frequency_reached(opensearch_config):
     )
     logger.addHandler(handler)
 
-    logger.warning(f"Frequency timeout reached")
+    logger.warning("Frequency timeout reached")
     assert len(handler._buffer) == 1
 
     time.sleep(1)
     assert len(handler._buffer) == 0
 
     time.sleep(5)
-    end_count = handler._client.count(index=index)
+    end_count = handler._get_opensearch_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1
 
 
 def test_fast_processing_of_many_logs(opensearch_config):
+    """Test fast processing of many log messages."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         flush_frequency=1000,
@@ -238,7 +248,7 @@ def test_fast_processing_of_many_logs(opensearch_config):
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._client.count(index=index)
+    start_count = handler._get_opensearch_client().count(index=index)
 
     logger = logging.getLogger(test_fast_processing_of_many_logs.__name__)
     logger.setLevel(logging.INFO)
@@ -256,11 +266,12 @@ def test_fast_processing_of_many_logs(opensearch_config):
     time.sleep(5)
     assert end_time - start_time < 5
 
-    end_count = handler._client.count(index=index)
+    end_count = handler._get_opensearch_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 100
 
 
 def test_logging_config(hosts, opensearch_config):
+    """Test logging configuration."""
     import logging
     import logging.config
 
@@ -297,12 +308,12 @@ def test_logging_config(hosts, opensearch_config):
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._client.count(index=index)
+    start_count = handler._get_opensearch_client().count(index=index)
 
     logger = logging.getLogger("foo")
     logger.info("Logging based on dictConfig")
 
     time.sleep(5)
 
-    end_count = handler._client.count(index=index)
+    end_count = handler._get_opensearch_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1

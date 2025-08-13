@@ -1,4 +1,6 @@
-# Copyright 2021-2023 Vagiz Duseev
+"""Tests for OpenSearchHandler functionality."""
+
+# Copyright 2021-2025 Vagiz Duseev
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime, timezone
 import logging
 import os
+from datetime import datetime, timezone
 
 import pytest
 
@@ -23,7 +25,8 @@ from opensearch_logger import OpenSearchHandler
 
 @pytest.fixture(scope="module")
 def hosts():
-    DEFAULT_OPENSEARCH_HOST = "https://localhost:9200"
+    """Fixture providing OpenSearch hosts."""
+    DEFAULT_OPENSEARCH_HOST = "https://admin:0penSe*rch@localhost:9200"
     host = os.environ.get("TEST_OPENSEARCH_HOST", DEFAULT_OPENSEARCH_HOST)
 
     return [host]
@@ -31,10 +34,12 @@ def hosts():
 
 @pytest.fixture(scope="module")
 def test_date():
+    """Fixture providing a test date."""
     return datetime(2021, 11, 8, tzinfo=timezone.utc)
 
 
 def test_missing_opensearch_parameters(hosts):
+    """Test that TypeError is raised when parameters are missing."""
     with pytest.raises(TypeError):
         OpenSearchHandler(index_name="test-opensearch-logger")
 
@@ -42,18 +47,20 @@ def test_missing_opensearch_parameters(hosts):
         OpenSearchHandler()
 
     # Test that handler can be created with valid hosts parameter
-    handler = OpenSearchHandler(hosts=hosts)
-    # Connection test result depends on whether OpenSearch is running/accessible
+    _ = OpenSearchHandler(hosts=hosts)
+    # Connection test result depends on whether OpenSearch is
+    # running/accessible
 
 
 def test_raise_on_index_exc():
+    """Test that exceptions are raised when raise_on_index_exc is True."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         raise_on_index_exc=True,
         hosts=["http://nothere:30129"],
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises((ConnectionError, Exception)):
         logger = logging.getLogger(test_raise_on_index_exc.__name__)
         logger.setLevel(logging.INFO)
         logger.addHandler(handler)
@@ -62,6 +69,7 @@ def test_raise_on_index_exc():
 
 
 def test_not_raise_on_index_exc():
+    """Test that exceptions are not raised when raise_on_index_exc=False."""
     handler = OpenSearchHandler(
         index_name="test-opensearch-logger",
         hosts=["http://nothere:30129"],
@@ -78,6 +86,7 @@ def test_not_raise_on_index_exc():
 
 
 def test_daily_index_name(test_date):
+    """Test daily index name generation."""
     handler = OpenSearchHandler(
         index_name="i",
         index_date_format="%Y-%m-%d",
@@ -87,6 +96,7 @@ def test_daily_index_name(test_date):
 
 
 def test_weekly_index_name(test_date):
+    """Test weekly index name generation."""
     handler = OpenSearchHandler(
         index_name="i",
         hosts=[],
@@ -107,6 +117,7 @@ def test_weekly_index_name(test_date):
 
 
 def test_monthly_index_name(test_date):
+    """Test monthly index name generation."""
     handler = OpenSearchHandler(
         index_name="name",
         index_date_format="%Y_%m_%d",
@@ -117,6 +128,7 @@ def test_monthly_index_name(test_date):
 
 
 def test_yearly_index_name(test_date):
+    """Test yearly index name generation."""
     handler = OpenSearchHandler(
         index_name="index",
         index_date_format="%YZ",
@@ -127,6 +139,7 @@ def test_yearly_index_name(test_date):
 
 
 def test_never_index_name(test_date):
+    """Test index name generation with no rotation."""
     handler = OpenSearchHandler(
         index_name="index",
         index_date_format="%Y-%m-%d",
