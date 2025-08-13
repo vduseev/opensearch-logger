@@ -41,7 +41,7 @@ jobs:
           uv venv test-env
           source test-env/bin/activate
           uv pip install dist/*.whl
-          python -c "import opensearch_logger; print(f'Built version: {opensearch_logger.__version__}')"
+          python -c "import opensearch_logger; print(f'Built version: {opensearch_logger.version.__version__}')"
           
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
