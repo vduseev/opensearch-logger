@@ -18,6 +18,7 @@ Examples:
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .ecs_handlers import ElasticSearchHandler
 from .handlers import OpenSearchHandler
 
-__all__ = ["OpenSearchHandler"]
+__all__ = ["OpenSearchHandler", "ElasticSearchHandler"]

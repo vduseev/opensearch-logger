@@ -149,6 +149,9 @@ class OpenSearchHandler(logging.Handler):
         # Arguments that will be passed to OpenSearch client object
         self.opensearch_kwargs = kwargs
 
+        # Simpler customization of emit() for OpenSearch/ElasticSearch
+        self.bulk = helpers.bulk
+
         # Bufferization and flush settings
         self.buffer_size = buffer_size
         self.flush_frequency = flush_frequency
@@ -239,7 +242,7 @@ class OpenSearchHandler(logging.Handler):
                     for record in logs_buffer
                 ]
 
-                helpers.bulk(
+                self.bulk(
                     client=self._get_opensearch_client(),
                     actions=actions,
                     stats_only=True,
