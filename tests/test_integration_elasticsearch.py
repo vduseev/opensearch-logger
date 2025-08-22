@@ -20,7 +20,7 @@ import time
 
 import pytest
 
-from opensearch_logger import OpenSearchHandler
+from opensearch_logger import ElasticSearchHandler
 
 
 @pytest.fixture(scope="module")
@@ -33,34 +33,19 @@ def hosts():
 
 
 @pytest.fixture(scope="module")
-def opensearch_config(hosts):
-    """Generate OpenSearch connection config based on host URL."""
-    host = hosts[0]
+def elasticsearch_config():
+    """Generate ElasticSearch connection config based on host URL."""
 
-    if host.startswith("https://"):
-        # Local development with security enabled
-        return {
-            "hosts": hosts,
-            "http_compress": True,
-            "http_auth": ("admin", "admin"),
-            "use_ssl": True,
-            "verify_certs": False,
-            "ssl_assert_hostname": False,
-            "ssl_show_warn": False,
-        }
-    else:
-        # CI environment with security disabled
-        return {
-            "hosts": hosts,
-            "http_compress": True,
-        }
+    return {
+        "host": "http://localhost:9201",
+    }
 
 
-def test_ping(opensearch_config):
+def test_ping(elasticsearch_config):
     """Test OpenSearch connection ping."""
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
-        **opensearch_config,
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
@@ -77,20 +62,20 @@ def test_ping(opensearch_config):
     handler.close()
 
 
-def test_buffered_log_flushed_when_buffer_full(opensearch_config):
+def test_buffered_log_flushed_when_buffer_full(elasticsearch_config):
     """Test that buffered logs are flushed when buffer is full."""
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
         index_rotate="DAILY",
         buffer_size=2,
         flush_frequency=1000,
-        **opensearch_config,
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._get_opensearch_client().count(index=index)
+    start_count = handler._get_client().count(index=index)
 
     logger = logging.getLogger(
         test_buffered_log_flushed_when_buffer_full.__name__
@@ -104,24 +89,24 @@ def test_buffered_log_flushed_when_buffer_full(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._get_opensearch_client().count(index=index)
+    end_count = handler._get_client().count(index=index)
 
     assert end_count["count"] - start_count["count"] == 2
 
 
-def test_log_with_extra_fields(opensearch_config):
+def test_log_with_extra_fields(elasticsearch_config):
     """Test logging with extra fields."""
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
         flush_frequency=1000,
         extra_fields={"App": "test", "Nested": {"One": 1, "Two": 2}},
-        **opensearch_config,
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._get_opensearch_client().count(index=index)
+    start_count = handler._get_client().count(index=index)
 
     logger = logging.getLogger(test_log_with_extra_fields.__name__)
     logger.addHandler(handler)
@@ -138,23 +123,23 @@ def test_log_with_extra_fields(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._get_opensearch_client().count(index=index)
+    end_count = handler._get_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1
 
 
-def test_log_extra_arguments(opensearch_config):
+def test_log_extra_arguments(elasticsearch_config):
     """Test logging with extra arguments."""
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
         flush_frequency=1000,
         extra_fields={"App": "test", "Nested": {"One": 1, "Two": 2}},
-        **opensearch_config,
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._get_opensearch_client().count(index=index)
+    start_count = handler._get_client().count(index=index)
 
     logger = logging.getLogger(test_log_extra_arguments.__name__)
     logger.addHandler(handler)
@@ -172,22 +157,22 @@ def test_log_extra_arguments(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._get_opensearch_client().count(index=index)
+    end_count = handler._get_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 2
 
 
-def test_log_exception(opensearch_config):
+def test_log_exception(elasticsearch_config):
     """Test logging exceptions."""
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
         flush_frequency=1000,
-        **opensearch_config,
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._get_opensearch_client().count(index=index)
+    start_count = handler._get_client().count(index=index)
 
     logger = logging.getLogger(test_log_exception.__name__)
     logger.addHandler(handler)
@@ -203,22 +188,22 @@ def test_log_exception(opensearch_config):
     handler.close()
 
     time.sleep(5)
-    end_count = handler._get_opensearch_client().count(index=index)
+    end_count = handler._get_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1
 
 
-def test_buffered_log_when_flush_frequency_reached(opensearch_config):
+def test_buffered_log_when_flush_frequency_reached(elasticsearch_config):
     """Test that logs are flushed when flush frequency is reached."""
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
         flush_frequency=0.1,
-        **opensearch_config,
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._get_opensearch_client().count(index=index)
+    start_count = handler._get_client().count(index=index)
     handler.close()
 
     logger = logging.getLogger(
@@ -233,22 +218,22 @@ def test_buffered_log_when_flush_frequency_reached(opensearch_config):
     assert len(handler._buffer) == 0
 
     time.sleep(5)
-    end_count = handler._get_opensearch_client().count(index=index)
+    end_count = handler._get_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1
 
 
-def test_fast_processing_of_many_logs(opensearch_config):
+def test_fast_processing_of_many_logs(elasticsearch_config):
     """Test fast processing of many log messages."""
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
         flush_frequency=1000,
-        **opensearch_config,
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._get_opensearch_client().count(index=index)
+    start_count = handler._get_client().count(index=index)
 
     logger = logging.getLogger(test_fast_processing_of_many_logs.__name__)
     logger.setLevel(logging.INFO)
@@ -266,22 +251,22 @@ def test_fast_processing_of_many_logs(opensearch_config):
     time.sleep(5)
     assert end_time - start_time < 5
 
-    end_count = handler._get_opensearch_client().count(index=index)
+    end_count = handler._get_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 100
 
 
-def test_logging_config(hosts, opensearch_config):
+def test_logging_config(hosts, elasticsearch_config):
     """Test logging configuration."""
     import logging
     import logging.config
 
-    # Build handler config from opensearch_config
+    # Build handler config from elasticsearch_config
     handler_config = {
         "level": "INFO",
-        "class": "opensearch_logger.OpenSearchHandler",
-        "index_name": "test-opensearch-logger",
+        "class": "opensearch_logger.ElasticSearchHandler",
+        "index_name": "test-elasticsearch-logger",
         "flush_frequency": 0.1,
-        **opensearch_config,
+        **elasticsearch_config,
     }
 
     LOGGING = {
@@ -299,21 +284,21 @@ def test_logging_config(hosts, opensearch_config):
 
     logging.config.dictConfig(LOGGING)
 
-    handler = OpenSearchHandler(
-        index_name="test-opensearch-logger",
+    handler = ElasticSearchHandler(
+        index_name="test-elasticsearch-logger",
         flush_frequency=1000,
-        **opensearch_config,
+        **elasticsearch_config,
     )
 
     assert handler.test_opensearch_connection()
 
     index = handler._get_index()
-    start_count = handler._get_opensearch_client().count(index=index)
+    start_count = handler._get_client().count(index=index)
 
     logger = logging.getLogger("foo")
     logger.info("Logging based on dictConfig")
 
     time.sleep(5)
 
-    end_count = handler._get_opensearch_client().count(index=index)
+    end_count = handler._get_client().count(index=index)
     assert end_count["count"] - start_count["count"] == 1

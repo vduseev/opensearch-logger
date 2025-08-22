@@ -18,6 +18,6 @@ Examples:
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .handlers import OpenSearchHandler
+from .handlers import ElasticSearchHandler, OpenSearchHandler
 
-__all__ = ["OpenSearchHandler"]
+__all__ = ["OpenSearchHandler", "ElasticSearchHandler"]
