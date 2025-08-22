@@ -16,7 +16,6 @@ class ElasticSearchHandler(BaseSearchHandler):
 
     def __init__(
         self,
-        host: str,
         **kwargs: Any,
     ):
         """Initialize ElasticSearch logging handler.
@@ -51,7 +50,6 @@ class ElasticSearchHandler(BaseSearchHandler):
         """
         super().__init__(**kwargs)
 
-        self.host = host
         self.client_kwargs = kwargs
         self._client: Optional[Elasticsearch] = None
         self.serializer = StdlibFormatter()
@@ -67,7 +65,7 @@ class ElasticSearchHandler(BaseSearchHandler):
     def _get_client(self) -> Elasticsearch:
         if self._client is None:
             self._client = Elasticsearch(
-                self.host,
+                self.client_kwargs["host"],
                 api_key=self.client_kwargs.get("api_key"),
             )
         return self._client

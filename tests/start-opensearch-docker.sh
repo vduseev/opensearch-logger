@@ -27,3 +27,16 @@ docker run -d --rm \
   -p "9200:9200" \
   -p "9600:9600" \
   opensearchproject/opensearch:latest
+
+docker run -d --rm \
+  --name test-elasticsearch-logger \
+  -e "cluster.name=elasticsearch-cluster" \
+  -e "cluster.routing.allocation.disk.threshold_enabled=false" \
+  -e "node.name=elasticsearch" \
+  -e "discovery.type=single-node" \
+  -e "bootstrap.memory_lock=true" \
+  -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
+  -e "xpack.security.enabled=false" \
+  -p "9201:9200" \
+  -p "9300:9300" \
+  elasticsearch:9.1.2

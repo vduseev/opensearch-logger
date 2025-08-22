@@ -15,3 +15,4 @@
 # limitations under the License.
 
 docker stop --timeout 3 test-opensearch-logger
+docker stop test-elasticsearch-logger

@@ -141,7 +141,7 @@ class BaseSearchHandler(logging.Handler):
         # Throw an exception if connection arguments for Openserach client
         # are empty
         if not kwargs:
-            raise TypeError("Missing OpenSearch connection parameters.")
+            raise TypeError("Missing connection parameters.")
 
         # Bufferization and flush settings
         self.buffer_size = buffer_size
