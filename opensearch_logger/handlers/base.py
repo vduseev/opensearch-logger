@@ -72,6 +72,7 @@ class BaseSearchHandler(logging.Handler):
         extra_fields: Optional[Dict[str, Any]] = None,
         raise_on_index_exc: bool = False,
         is_data_stream: bool = False,
+        **kwargs: Any,
     ):
         """Initialize OpenSearch logging handler.
 
@@ -109,6 +110,7 @@ class BaseSearchHandler(logging.Handler):
                 fails.
             is_data_stream: Whether to use OpenSearch data streams instead of
                 indices.
+            kwargs: Connection parameters for OpenSearch client.
 
         Examples:
             The configuration below is suitable for connection to an
@@ -136,8 +138,10 @@ class BaseSearchHandler(logging.Handler):
         """
         logging.Handler.__init__(self)
 
-        # Simpler customization of emit() for child classes
-        self.bulk: Any = None
+        # Throw an exception if connection arguments for Openserach client
+        # are empty
+        if not kwargs:
+            raise TypeError("Missing OpenSearch connection parameters.")
 
         # Bufferization and flush settings
         self.buffer_size = buffer_size
@@ -196,7 +200,7 @@ class BaseSearchHandler(logging.Handler):
             bool: True if the connection against elasticserach host was
                 successful.
         """
-        return bool(self._get_opensearch_client().ping())
+        return bool(self._get_client().ping())
 
     def flush(self) -> None:
         """Flush the buffer into OpenSearch."""
@@ -229,15 +233,15 @@ class BaseSearchHandler(logging.Handler):
                     for record in logs_buffer
                 ]
 
-                self.bulk(
-                    client=self._get_opensearch_client(),
-                    actions=actions,
-                    stats_only=True,
-                )
+                self.bulk(actions)
 
             except Exception as exception:  # noqa: BLE001
                 if self.raise_on_index_exc:
                     raise exception
+
+    def bulk(self, actions: List[Any]) -> None:
+        """Abstract method to be implemented on child classes."""
+        raise Exception("Unimplemented bulk method")
 
     def close(self) -> None:
         """Flush the buffer and release any outstanding resource."""
@@ -261,8 +265,9 @@ class BaseSearchHandler(logging.Handler):
         else:
             self._schedule_flush()
 
-    def _get_opensearch_client(self) -> Any:
-        pass
+    def _get_client(self) -> Any:
+        """Abstract method to be implemented on child classes."""
+        raise Exception("Unimplemented _get_client method")
 
     def _schedule_flush(self) -> None:
         if self._timer is None:

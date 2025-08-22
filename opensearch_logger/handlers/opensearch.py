@@ -1,6 +1,6 @@
 """OpenSearch logging Handler facility."""
 
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from opensearchpy import OpenSearch, helpers
 
@@ -17,7 +17,6 @@ class OpenSearchHandler(BaseSearchHandler):
 
     def __init__(
         self,
-        *args: Any,
         **kwargs: Any,
     ):
         """Initialize OpenSearch logging handler.
@@ -64,19 +63,21 @@ class OpenSearchHandler(BaseSearchHandler):
             ...     f"This one will have extra fields", extra={"topic": "dev"}
             ... )
         """
-        # Throw an exception if connection arguments for Opensearch client
-        # are empty
-        if not kwargs:
-            raise TypeError("Missing connection parameters.")
-
-        BaseSearchHandler.__init__(self, *args)
+        super().__init__(**kwargs)
 
         self.client_kwargs = kwargs
         self._client: Optional[OpenSearch] = None
         self.serializer = OpenSearchLoggerSerializer()
-        self.bulk = helpers.bulk
 
-    def _get_opensearch_client(self) -> OpenSearch:
+    def bulk(self, actions: List[Any]) -> None:
+        """Wraps calling of bulk submission."""
+        helpers.bulk(
+            client=self._get_client(),
+            actions=actions,
+            stats_only=True,
+        )
+
+    def _get_client(self) -> OpenSearch:
         if self._client is None:
             self._client = OpenSearch(**self.client_kwargs)
         return self._client

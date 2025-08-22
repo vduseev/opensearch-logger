@@ -1,6 +1,6 @@
 """ElasticSearch logging Handler facility."""
 
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from ecs_logging import StdlibFormatter
 from elasticsearch import Elasticsearch, helpers
@@ -17,7 +17,6 @@ class ElasticSearchHandler(BaseSearchHandler):
     def __init__(
         self,
         host: str,
-        *args: Any,
         **kwargs: Any,
     ):
         """Initialize ElasticSearch logging handler.
@@ -50,20 +49,22 @@ class ElasticSearchHandler(BaseSearchHandler):
             ...     f"This one will have extra fields", extra={"topic": "dev"}
             ... )
         """
-        # Throw an exception if connection arguments for Elasticsearch client
-        # are empty
-        if not kwargs:
-            raise TypeError("Missing connection parameters.")
-
-        BaseSearchHandler.__init__(self, *args)
+        super().__init__(**kwargs)
 
         self.host = host
         self.client_kwargs = kwargs
         self._client: Optional[Elasticsearch] = None
         self.serializer = StdlibFormatter()
-        self.bulk = helpers.bulk
 
-    def _get_opensearch_client(self) -> Elasticsearch:
+    def bulk(self, actions: List[Any]) -> None:
+        """Wraps calling of bulk submission."""
+        helpers.bulk(
+            client=self._get_client(),
+            actions=actions,
+            stats_only=True,
+        )
+
+    def _get_client(self) -> Elasticsearch:
         if self._client is None:
             self._client = Elasticsearch(
                 self.host,
