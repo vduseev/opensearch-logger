@@ -1,4 +1,4 @@
-"""OpenSearch logging Handler facility."""
+"""Open/Elastic Search logging base Handler class."""
 
 # Copyright 2021-2025 Vagiz Duseev
 #
@@ -24,10 +24,7 @@ from threading import Lock, Timer
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
-from opensearchpy import OpenSearch, helpers
-
-from .serializers import OpenSearchLoggerSerializer
-from .version import __version__
+from ..version import __version__
 
 
 class RotateFrequency(Enum):
@@ -40,7 +37,7 @@ class RotateFrequency(Enum):
     NEVER = 4
 
 
-class OpenSearchHandler(logging.Handler):
+class BaseSearchHandler(logging.Handler):
     """OpenSearch logging handler.
 
     Allows to log to OpenSearch in json format.
@@ -75,7 +72,6 @@ class OpenSearchHandler(logging.Handler):
         extra_fields: Optional[Dict[str, Any]] = None,
         raise_on_index_exc: bool = False,
         is_data_stream: bool = False,
-        **kwargs: Any,
     ):
         """Initialize OpenSearch logging handler.
 
@@ -113,7 +109,6 @@ class OpenSearchHandler(logging.Handler):
                 fails.
             is_data_stream: Whether to use OpenSearch data streams instead of
                 indices.
-            kwargs: Connection parameters for OpenSearch client.
 
         Examples:
             The configuration below is suitable for connection to an
@@ -141,16 +136,8 @@ class OpenSearchHandler(logging.Handler):
         """
         logging.Handler.__init__(self)
 
-        # Throw an exception if connection arguments for Openserach client
-        # are empty
-        if not kwargs:
-            raise TypeError("Missing OpenSearch connection parameters.")
-
-        # Arguments that will be passed to OpenSearch client object
-        self.opensearch_kwargs = kwargs
-
-        # Simpler customization of emit() for OpenSearch/ElasticSearch
-        self.bulk = helpers.bulk
+        # Simpler customization of emit() for child classes
+        self.bulk: Any = None
 
         # Bufferization and flush settings
         self.buffer_size = buffer_size
@@ -171,21 +158,21 @@ class OpenSearchHandler(logging.Handler):
             extra_fields = {}
         self.extra_fields = copy.deepcopy(extra_fields.copy())
         self.extra_fields.setdefault("ecs", {})["version"] = (
-            OpenSearchHandler._ECS_VERSION
+            BaseSearchHandler._ECS_VERSION
         )
 
-        self._client: Optional[OpenSearch] = None
+        # self._client = None
         self._buffer: List[Dict[str, Any]] = []
         self._buffer_lock: Lock = Lock()
         self._timer: Optional[Timer] = None
-        self.serializer = OpenSearchLoggerSerializer()
+        # self.serializer = None
 
         self.raise_on_index_exc: bool = raise_on_index_exc
 
         agent_dict = self.extra_fields.setdefault("agent", {})
         agent_dict["ephemeral_id"] = uuid4()
-        agent_dict["type"] = OpenSearchHandler._AGENT_TYPE
-        agent_dict["version"] = OpenSearchHandler._AGENT_VERSION
+        agent_dict["type"] = BaseSearchHandler._AGENT_TYPE
+        agent_dict["version"] = BaseSearchHandler._AGENT_VERSION
 
         host_dict = self.extra_fields.setdefault("host", {})
         host_name = socket.gethostname()
@@ -274,10 +261,8 @@ class OpenSearchHandler(logging.Handler):
         else:
             self._schedule_flush()
 
-    def _get_opensearch_client(self) -> OpenSearch:
-        if self._client is None:
-            self._client = OpenSearch(**self.opensearch_kwargs)
-        return self._client
+    def _get_opensearch_client(self) -> Any:
+        pass
 
     def _schedule_flush(self) -> None:
         if self._timer is None:
@@ -397,7 +382,7 @@ class OpenSearchHandler(logging.Handler):
 
         # Copy unknown attributes of the log_record object.
         for key, value in log_record_dict.items():
-            if key not in OpenSearchHandler._LOGGING_FILTER_FIELDS:
+            if key not in BaseSearchHandler._LOGGING_FILTER_FIELDS:
                 if key == "args":
                     value = tuple(str(arg) for arg in value)
                 doc[key] = "" if value is None else value

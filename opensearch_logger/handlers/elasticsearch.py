@@ -5,10 +5,10 @@ from typing import Any, Optional
 from ecs_logging import StdlibFormatter
 from elasticsearch import Elasticsearch, helpers
 
-from .handlers import OpenSearchHandler
+from .base import BaseSearchHandler
 
 
-class ElasticSearchHandler(OpenSearchHandler):
+class ElasticSearchHandler(BaseSearchHandler):
     """ElasticSearch logging handler.
 
     Allows to log to ElasticSearch cloud in json format
@@ -16,7 +16,8 @@ class ElasticSearchHandler(OpenSearchHandler):
 
     def __init__(
         self,
-        *args,
+        host: str,
+        *args: Any,
         **kwargs: Any,
     ):
         """Initialize ElasticSearch logging handler.
@@ -49,8 +50,15 @@ class ElasticSearchHandler(OpenSearchHandler):
             ...     f"This one will have extra fields", extra={"topic": "dev"}
             ... )
         """
-        OpenSearchHandler.__init__(self, *args, **kwargs)
+        # Throw an exception if connection arguments for Elasticsearch client
+        # are empty
+        if not kwargs:
+            raise TypeError("Missing connection parameters.")
 
+        BaseSearchHandler.__init__(self, *args)
+
+        self.host = host
+        self.client_kwargs = kwargs
         self._client: Optional[Elasticsearch] = None
         self.serializer = StdlibFormatter()
         self.bulk = helpers.bulk
@@ -58,7 +66,7 @@ class ElasticSearchHandler(OpenSearchHandler):
     def _get_opensearch_client(self) -> Elasticsearch:
         if self._client is None:
             self._client = Elasticsearch(
-                self.opensearch_kwargs["host"],
-                api_key=self.opensearch_kwargs["api_key"],
+                self.host,
+                api_key=self.client_kwargs.get("api_key"),
             )
         return self._client
